@@ -46,7 +46,8 @@ export default function Auth() {
         }
         setMessage({ type: 'success', text: data.message || `Signed up ${email}` })
         reset()
-      } catch {
+      } catch (error) {
+        console.error('Signup error:', error)
         setMessage({ type: 'error', text: 'Network error. Please try again.' })
       } finally {
         setLoading(false)
