@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import '../App.css'
+import { request } from '../lib/api'
 
 export default function Auth() {
   const [mode, setMode] = useState('login') // 'login' | 'signup'
@@ -7,6 +8,7 @@ export default function Auth() {
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [message, setMessage] = useState(null)
+  const [loading, setLoading] = useState(false)
 
   const reset = () => {
     setEmail('')
@@ -15,7 +17,7 @@ export default function Auth() {
     setMessage(null)
   }
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault()
     setMessage(null)
     if (!email || !password) {
@@ -27,15 +29,43 @@ export default function Auth() {
         setMessage({ type: 'error', text: 'Passwords do not match.' })
         return
       }
-      // TODO: call signup API
-      setMessage({ type: 'success', text: `Signed up ${email}` })
-      reset()
-      return
     }
 
-    // TODO: call login API
-    setMessage({ type: 'success', text: `Logged in ${email}` })
-    reset()
+    setLoading(true)
+    try {
+      if (mode === 'signup') {
+        const data = await request('/auth/signup', {
+          method: 'POST',
+          body: JSON.stringify({ email, password }),
+        })
+        if (data?.token) {
+          localStorage.setItem('token', data.token)
+        }
+        setMessage({ type: 'success', text: data?.message || `Signed up ${email}` })
+        reset()
+        setMode('login')
+        return
+      }
+
+      // login
+      const data = await request('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      })
+      if (data?.token) {
+        localStorage.setItem('token', data.token)
+        setMessage({ type: 'success', text: 'Logged in' })
+        // TODO: replace with AuthContext / navigation
+      } else {
+        setMessage({ type: 'error', text: data?.message || 'Unexpected server response' })
+      }
+      reset()
+    } catch (err) {
+      const errMsg = err?.body?.message || err?.body || 'Server error'
+      setMessage({ type: 'error', text: errMsg })
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -61,7 +91,7 @@ export default function Auth() {
           )}
 
           <div className="auth-actions">
-            <button type="submit" className="btn-primary">{mode === 'login' ? 'Log In' : 'Create Account'}</button>
+            <button type="submit" className="btn-primary" disabled={loading}>{loading ? 'Please wait...' : (mode === 'login' ? 'Log In' : 'Create Account')}</button>
             <button type="button" className="btn-link" onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setMessage(null) }}>
               {mode === 'login' ? 'Need an account? Sign up' : 'Have an account? Log in'}
             </button>
