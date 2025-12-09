@@ -29,7 +29,7 @@ async function request(path, opts = {}) {
   let body = null
   try {
     body = text ? JSON.parse(text) : null
-  } catch (e) {
+  } catch {
     // Not JSON — return raw text
     body = text
   }
