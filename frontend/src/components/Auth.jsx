@@ -20,49 +20,63 @@ export default function Auth() {
   const submit = async (e) => {
     e.preventDefault()
     setMessage(null)
+
     if (!email || !password) {
       setMessage({ type: 'error', text: 'Please fill email and password.' })
       return
     }
-    if (mode === 'signup') {
-      if (password !== confirm) {
-        setMessage({ type: 'error', text: 'Passwords do not match.' })
-        return
-      }
+
+    if (mode === 'signup' && password !== confirm) {
+      setMessage({ type: 'error', text: 'Passwords do not match.' })
+      return
     }
 
     setLoading(true)
     try {
       if (mode === 'signup') {
-        const data = await request('/auth/signup', {
+        // Use email as username for demo, or add a username field in the form for production
+        const data = await request('/api/auth/signup', {
           method: 'POST',
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify({ username: email, email, password }),
         })
-        if (data?.token) {
-          localStorage.setItem('token', data.token)
-        }
+
         setMessage({ type: 'success', text: data?.message || `Signed up ${email}` })
         reset()
         setMode('login')
         return
       }
 
-      // login
-      const data = await request('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
-      })
-      if (data?.token) {
-        localStorage.setItem('token', data.token)
-        setMessage({ type: 'success', text: 'Logged in' })
-        // TODO: replace with AuthContext / navigation
-      } else {
-        setMessage({ type: 'error', text: data?.message || 'Unexpected server response' })
-      }
+    // login
+    // Note: Backend uses /api/auth/signin, not /api/auth/login
+    const data = await request('/api/auth/signin', {
+      method: 'POST',
+      body: JSON.stringify({ username: email, password }), // Backend LoginRequest expects username, not email
+    })
+
+    if (data?.token) {
+      localStorage.setItem('token', data.token)
+      setMessage({ type: 'success', text: 'Logged in' })
+    } else {
+      setMessage({ type: 'error', text: data?.message || 'Unexpected server response' })
+    }
       reset()
     } catch (err) {
-      const errMsg = err?.body?.message || err?.body || 'Server error'
-      setMessage({ type: 'error', text: errMsg })
+      // If server returns JSON error, err.body might be an object like {timestamp, status, error, path}
+      // We must render string, not object
+      let errorText = 'Server error'
+      if (err?.body) {
+          if (typeof err.body === 'string') {
+              errorText = err.body
+          } else if (err.body.message) {
+              errorText = err.body.message
+          } else if (err.body.error) {
+              // Spring Boot often returns { error: "Bad Request", status: 400 ... }
+              errorText = `${err.body.status || 'Error'} - ${err.body.error}`
+          } else {
+             errorText = JSON.stringify(err.body)
+          }
+      }
+      setMessage({ type: 'error', text: errorText })
     } finally {
       setLoading(false)
     }
