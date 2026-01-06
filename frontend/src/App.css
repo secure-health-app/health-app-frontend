@@ -1,55 +1,21 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-  color: var(--text-dark);
-}
+    margin: 0;
+      padding: 0;
+        width: 100%;
+          min-height: 100vh;
+          }
 
-.auth-container {
-  display: flex;
-  justify-content: center;
-  margin-top: 1.5rem;
-}
+          * {
+            box-sizing: border-box;
+            }
 
-.auth-card {
-  background: #ffffff;
-  padding: 1.25rem 1.5rem;
-  border-radius: 8px;
-  min-width: 320px;
-  max-width: 420px;
-  width: 100%;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.06);
-  color: var(--text-dark);
-}
+            body {
+              margin: 0;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                }
 
-.auth-form label {
-  display: block;
-  text-align: left;
-  margin-bottom: 0.75rem;
-  font-size: 0.95rem;
-  color: var(--text-medium);
-}
-
-.auth-form input {
-  width: 100%;
-  padding: 0.5rem;
-  margin-top: 0.25rem;
-  border-radius: 6px;
-  border: 1px solid #e6e6e6;
-  background: #ffffff;
-  color: var(--text-dark);
-}
-
-.auth-actions { display:flex; gap:0.5rem; align-items:center; justify-content:space-between; margin-top:1rem }
-.btn-primary { background: var(--color-primary); color: #fff; border: none }
-.btn-link { background: transparent; color: var(--color-secondary); border: none }
-
-.auth-message { margin-top: 0.75rem; padding: 0.5rem; border-radius: 6px; font-weight: 600 }
-.auth-message.success { background: rgba(76,175,80,0.08); color: var(--status-success) }
-.auth-message.error { background: rgba(211,47,47,0.06); color: var(--status-error) }
-
-@media (prefers-color-scheme: dark) {
-  .auth-card { background: rgba(255,255,255,0.04); color: #e6e6e6 }
-  .auth-form input { background: rgba(0,0,0,0.22); border: 1px solid rgba(255,255,255,0.06); color: #e6e6e6 }
-}
+                @media (prefers-color-scheme: dark) {
+                  .auth-card { background: rgba(255,255,255,0.04); color: #e6e6e6 }
+                    .auth-form input { background: rgba(0,0,0,0.22); border: 1px solid rgba(255,255,255,0.06); color: #e6e6e6 }
+                    }
+                    
