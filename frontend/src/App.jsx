@@ -1,11 +1,11 @@
 import './App.css'
-import Auth from './components/Auth'
+import Dashboard from './components/Dashboard'
 
 function App() {
   return (
     <div>
-      <h1>Digital Health App</h1>
-      <Auth />
+      <h1>SmartGuardian</h1>
+      <Dashboard />
     </div>
   )
 }

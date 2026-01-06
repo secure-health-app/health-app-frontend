@@ -1,4 +1,6 @@
-# Secure AI-integrated Digital Health Application
+# SmartGuardian
+
+Secure AI-integrated digital health application for fall detection and biometric monitoring.
 
 ## Installation & Setup
 

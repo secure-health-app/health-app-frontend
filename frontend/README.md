@@ -1,6 +1,6 @@
-# health-app-frontend
+# SmartGuardian Frontend
 
-A modern React-based frontend for the Secure AI-Integrated Digital Health Application.  
+A modern React-based frontend for SmartGuardian, the Secure AI-Integrated Digital Health Application.  
 This application provides a responsive user interface for patients and caregivers to view health data, receive alerts, and manage emergency contacts.
 
 ---
