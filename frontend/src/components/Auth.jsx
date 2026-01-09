@@ -2,7 +2,7 @@ import { useState } from 'react'
 import '../App.css'
 import { request } from '../lib/api'
 
-export default function Auth() {
+export default function Auth({ onLogin }) {
   const [mode, setMode] = useState('login') // 'login' | 'signup'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -56,6 +56,7 @@ export default function Auth() {
     if (data?.token) {
       localStorage.setItem('token', data.token)
       setMessage({ type: 'success', text: 'Logged in' })
+      onLogin && onLogin()
     } else {
       setMessage({ type: 'error', text: data?.message || 'Unexpected server response' })
     }
@@ -84,6 +85,11 @@ export default function Auth() {
 
   return (
     <div className="auth-container">
+      <div className="auth-header">
+        <img src="/Logo.png" alt="SmartGuardian Logo" className="auth-logo" />
+        <h1>SmartGuardian</h1>
+        <p>Integrated AI Health Monitoring</p>
+      </div>
       <div className="auth-card">
         <h2>{mode === 'login' ? 'Log In' : 'Sign Up'}</h2>
         <form onSubmit={submit} className="auth-form">
