@@ -1,7 +1,7 @@
 import './Dashboard.css'
-import { FaHeartbeat, FaCalendarAlt, FaPills, FaWalking, FaThermometerHalf, FaMoon, FaLungs, FaTint, FaChartLine, FaExclamationTriangle } from 'react-icons/fa'
+import { FaHeartbeat, FaCalendarAlt, FaPills, FaWalking, FaThermometerHalf, FaMoon, FaLungs, FaTint, FaChartLine, FaExclamationTriangle, FaUser } from 'react-icons/fa'
 
-function Dashboard() {
+function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications }) {
   const handleEmergency = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -42,14 +42,27 @@ function Dashboard() {
     }
   };
 
+  const handleLogout = () => {
+    if (window.confirm('Are you sure you want to log out?')) {
+      onLogout && onLogout();
+    }
+  };
+
   return (
     <div className="dashboard">
       <header className="dashboard-header">
         <div className="header-content">
-          <img src="/Logo.png" alt="SmartGuardian Logo" className="logo" />
-          <div>
-            <h1>SmartGuardian</h1>
-            <p>Your Personal Health Companion</p>
+          <div className="header-left">
+            <img src="/Logo.png" alt="SmartGuardian Logo" className="logo" />
+            <div>
+              <h1>SmartGuardian</h1>
+              <p>Your Personal Health Companion</p>
+            </div>
+          </div>
+          <div className="header-right">
+            <button className="profile-button" title="Profile" onClick={handleLogout}>
+              <FaUser className="button-icon" />
+            </button>
           </div>
         </div>
       </header>
@@ -127,13 +140,13 @@ function Dashboard() {
       </main>
       
       <footer className="dashboard-footer">
-        <button className="footer-button" title="Appointments">
+        <button className="footer-button" title="Appointments" onClick={onNavigateToAppointments}>
           <FaCalendarAlt className="button-icon" />
         </button>
         <button className="footer-button assistance-button" title="Emergency Assistance" onClick={handleEmergency}>
           <FaExclamationTriangle className="button-icon" />
         </button>
-        <button className="footer-button" title="Medications">
+        <button className="footer-button" title="Medications" onClick={onNavigateToMedications}>
           <FaPills className="button-icon" />
         </button>
       </footer>
