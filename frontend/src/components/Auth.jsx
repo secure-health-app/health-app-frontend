@@ -34,10 +34,9 @@ export default function Auth({ onLogin }) {
     setLoading(true)
     try {
       if (mode === 'signup') {
-        // Use email as username for demo, or add a username field in the form for production
         const data = await request('/api/auth/signup', {
           method: 'POST',
-          body: JSON.stringify({ username: email, email, password }),
+          body: JSON.stringify({  email, password }),
         })
 
         setMessage({ type: 'success', text: data?.message || `Signed up ${email}` })
@@ -47,10 +46,9 @@ export default function Auth({ onLogin }) {
       }
 
     // login
-    // Note: Backend uses /api/auth/signin, not /api/auth/login
     const data = await request('/api/auth/signin', {
       method: 'POST',
-      body: JSON.stringify({ username: email, password }), // Backend LoginRequest expects username, not email
+      body: JSON.stringify({ email, password }), 
     })
 
     if (data?.token) {
@@ -63,7 +61,6 @@ export default function Auth({ onLogin }) {
       reset()
     } catch (err) {
       // If server returns JSON error, err.body might be an object like {timestamp, status, error, path}
-      // We must render string, not object
       let errorText = 'Server error'
       if (err?.body) {
           if (typeof err.body === 'string') {
