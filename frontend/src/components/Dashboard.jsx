@@ -1,7 +1,116 @@
 import './Dashboard.css'
-import { FaHeartbeat, FaCalendarAlt, FaPills, FaWalking, FaThermometerHalf, FaMoon, FaLungs, FaTint, FaChartLine, FaExclamationTriangle, FaUser } from 'react-icons/fa'
+import { FaHeartbeat, FaCalendarAlt, FaPills, FaWalking, FaMoon, FaExclamationTriangle, FaUser } from 'react-icons/fa'
+import { useState, useEffect } from 'react'
+import fitbitService from '../services/fitbitService'
 
 function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications }) {
+
+  const [heartRate, setHeartRate] = useState(null)  
+  const [steps, setSteps] = useState(null);
+  const [sleep, setSleep] = useState(null);
+  const [restingHR, setRestingHR] = useState(null);
+
+  const fetchHeartRate = async () => {
+  try {
+    const data = await fitbitService.getHeartRate();
+    const resting =
+      data?.["activities-heart"]?.[0]?.value?.restingHeartRate;
+
+    const current =
+      data?.["activities-heart"]?.[0]?.value?.heartRateZones?.[0]?.max; 
+    // fallback example if live HR not available
+
+    setHeartRate(current ?? resting ?? 'N/A');
+    setRestingHR(resting ?? 'N/A');
+  } catch (error) {
+
+ // If Fitbit not connected yet - send user to connect
+if (error && (error.status === 500 || error.status === 401)) {
+      const token = localStorage.getItem("token");
+
+      window.location.href =
+      "http://localhost:8080/api/auth/fitbit/connect?token=" + token;
+
+      return;
+    }
+
+    console.error("Failed to fetch heart rate:", error);
+    setHeartRate('N/A');
+    setRestingHR('N/A');
+  }
+};
+
+const fetchSteps = async () => {
+  try {
+    const data = await fitbitService.getSteps();
+    const stepsValue =
+      data?.summary?.steps ||
+      data?.activities?.[0]?.steps;
+
+    setSteps(stepsValue ?? 'N/A');
+    console.log("STEPS RAW:", data);
+
+  } catch (error) {
+    setSteps('N/A');
+  }
+};
+
+const fetchSleep = async () => {
+  try {
+    const data = await fitbitService.getSleep();
+    const minutes = data?.sleep?.[0]?.minutesAsleep;
+
+    if (!minutes) {
+      setSleep('N/A');
+      return;
+    }
+
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+
+    setSleep(`${hours}h ${mins}m`);
+  } catch {
+    setSleep('N/A');
+  }
+};
+
+useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+
+  if (params.get("fitbit") === "connected") {
+    window.history.replaceState({}, document.title, "/dashboard");
+  }
+
+  fetchHeartRate();
+  fetchSteps();
+  fetchSleep();
+
+  let startY = 0;
+
+  const onTouchStart = (e) => {
+    startY = e.touches[0].clientY;
+  };
+
+  const onTouchEnd = (e) => {
+    const endY = e.changedTouches[0].clientY;
+
+    // If user pulled down
+    if (endY - startY > 120) {
+      fetchHeartRate();
+      fetchSteps();
+      fetchSleep();
+    }
+  };
+
+  window.addEventListener("touchstart", onTouchStart);
+  window.addEventListener("touchend", onTouchEnd);
+
+  return () => {
+    window.removeEventListener("touchstart", onTouchStart);
+    window.removeEventListener("touchend", onTouchEnd);
+  };
+}, []);
+
   const handleEmergency = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -72,67 +181,35 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
           <h2>Today's Health Metrics</h2>
           <div className="metrics-grid">
             <div className="metric-card">
-              <FaHeartbeat className="metric-icon" />
               <div className="metric-info">
-                <span className="metric-value">72</span>
+                <FaHeartbeat className="metric-icon" />
+                <span className="metric-value">{heartRate ?? '--'}</span>
                 <span className="metric-unit">BPM</span>
                 <span className="metric-label">Heart Rate</span>
               </div>
             </div>
             <div className="metric-card">
-              <FaWalking className="metric-icon" />
               <div className="metric-info">
-                <span className="metric-value">8,432</span>
+                <FaWalking className="metric-icon" />
+                <span className="metric-value">{steps ?? '--'}</span>
                 <span className="metric-unit">steps</span>
                 <span className="metric-label">Daily Steps</span>
               </div>
             </div>
             <div className="metric-card">
-              <FaMoon className="metric-icon" />
               <div className="metric-info">
-                <span className="metric-value">8h 30m</span>
+                <FaMoon className="metric-icon" />                
+                <span className="metric-value">{sleep ?? '--'}</span>
                 <span className="metric-unit">last night</span>
                 <span className="metric-label">Sleep</span>
               </div>
             </div>
             <div className="metric-card">
-              <FaLungs className="metric-icon" />
               <div className="metric-info">
-                <span className="metric-value">16</span>
-                <span className="metric-unit">breaths/min</span>
-                <span className="metric-label">Breathing Rate</span>
-              </div>
-            </div>
-            <div className="metric-card">
-              <FaTint className="metric-icon" />
-              <div className="metric-info">
-                <span className="metric-value">98</span>
-                <span className="metric-unit">%</span>
-                <span className="metric-label">Blood Oxygen</span>
-              </div>
-            </div>
-            <div className="metric-card">
-              <FaHeartbeat className="metric-icon" />
-              <div className="metric-info">
-                <span className="metric-value">65</span>
+                <FaHeartbeat className="metric-icon" />
+                <span className="metric-value">{restingHR ?? '--'}</span>
                 <span className="metric-unit">BPM</span>
                 <span className="metric-label">Resting Heart Rate</span>
-              </div>
-            </div>
-            <div className="metric-card">
-              <FaChartLine className="metric-icon" />
-              <div className="metric-info">
-                <span className="metric-value">45</span>
-                <span className="metric-unit">ms</span>
-                <span className="metric-label">Heart Rate Variability</span>
-              </div>
-            </div>
-            <div className="metric-card">
-              <FaThermometerHalf className="metric-icon" />
-              <div className="metric-info">
-                <span className="metric-value">±0.3</span>
-                <span className="metric-unit">°C</span>
-                <span className="metric-label">Skin Temp Variation</span>
               </div>
             </div>
           </div>

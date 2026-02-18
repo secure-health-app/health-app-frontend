@@ -44,14 +44,14 @@ function App() {
 
   if (!isLoggedIn) {
     return (
-      <div style={{ width: '100vw', maxWidth: '100vw', overflowX: 'hidden' }}>
+      <div style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden' }}>
         <Auth onLogin={handleLogin} />
       </div>
     )
   }
 
   return (
-    <div style={{ width: '100vw', maxWidth: '100vw', overflowX: 'hidden' }}>
+    <div style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden' }}>
       {currentPage === 'dashboard' ? (
         <Dashboard onLogout={handleLogout} onNavigateToAppointments={navigateToAppointments} onNavigateToMedications={navigateToMedications} />
       ) : currentPage === 'appointments' ? (
