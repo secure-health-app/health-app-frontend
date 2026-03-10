@@ -1,164 +1,232 @@
 import './Dashboard.css'
-import { FaHeartbeat, FaCalendarAlt, FaPills, FaWalking, FaMoon, FaExclamationTriangle, FaUser } from 'react-icons/fa'
-import { useState, useEffect } from 'react'
+import { FaHeartbeat, FaCalendarAlt, FaPills, FaWalking, FaMoon, FaUser } from 'react-icons/fa'
+import { useState, useEffect, useRef } from 'react'
 import fitbitService from '../services/fitbitService'
+import alertService from '../services/alertService'
 
-function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications }) {
+const ALERT_POLL_INTERVAL = 5000
+const COUNTDOWN_SECONDS = 30
+const FITBIT_REFRESH_INTERVAL = 1 * 60 * 1000  // 1 minute
 
-  const [heartRate, setHeartRate] = useState(null)  
+function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications, onNavigateToSettings }) {
+
+  const [activityMinutes, setActivityMinutes] = useState(null) 
   const [steps, setSteps] = useState(null);
   const [sleep, setSleep] = useState(null);
   const [restingHR, setRestingHR] = useState(null);
+  const [heartRate, setHeartRate] = useState(null);
+
+  // fall alert state
+  const [activeAlert, setActiveAlert] = useState(null)
+  const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS)
+  const [alertLocation, setAlertLocation] = useState(null)
+
+  const confirmedRef = useRef(false)
+  const pollRef = useRef(null)
+  const countdownRef = useRef(null)
 
   const fetchHeartRate = async () => {
-  try {
-    const data = await fitbitService.getHeartRate();
-    const resting =
-      data?.["activities-heart"]?.[0]?.value?.restingHeartRate;
-
-    const current =
-      data?.["activities-heart"]?.[0]?.value?.heartRateZones?.[0]?.max; 
-    // fallback example if live HR not available
-
-    setHeartRate(current ?? resting ?? 'N/A');
-    setRestingHR(resting ?? 'N/A');
-  } catch (error) {
-
- // If Fitbit not connected yet - send user to connect
-if (error && (error.status === 500 || error.status === 401)) {
-      const token = localStorage.getItem("token");
-
-      window.location.href =
-      "http://localhost:8080/api/auth/fitbit/connect?token=" + token;
-
-      return;
+    try {
+      const data = await fitbitService.getHeartRate()
+      const resting = data?.["activities-heart"]?.[0]?.value?.restingHeartRate
+      const current = data?.["activities-heart"]?.[0]?.value?.heartRateZones?.[0]?.max
+      setHeartRate(current ?? resting ?? 'N/A')
+      setRestingHR(resting ?? 'N/A')
+    } catch (error) {
+      if (error?.status === 401) {
+        console.log("Fitbit not connected yet")
+        setHeartRate("Pull to connect")
+        return
+      }
+      setHeartRate('N/A')
+      setRestingHR('N/A')
     }
-
-    console.error("Failed to fetch heart rate:", error);
-    setHeartRate('N/A');
-    setRestingHR('N/A');
   }
-};
 
-const fetchSteps = async () => {
-  try {
-    const data = await fitbitService.getSteps();
-    const stepsValue =
-      data?.summary?.steps ||
-      data?.activities?.[0]?.steps;
-
-    setSteps(stepsValue ?? 'N/A');
-    console.log("STEPS RAW:", data);
-
-  } catch (error) {
-    setSteps('N/A');
-  }
-};
-
-const fetchSleep = async () => {
-  try {
-    const data = await fitbitService.getSleep();
-    const minutes = data?.sleep?.[0]?.minutesAsleep;
-
-    if (!minutes) {
-      setSleep('N/A');
-      return;
+  const fetchSteps = async () => {
+    try {
+      const data = await fitbitService.getSteps()
+      setSteps((data?.summary?.steps || data?.activities?.[0]?.steps) ?? 'N/A')
+    } catch {
+      setSteps('N/A')
     }
-
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-
-    setSleep(`${hours}h ${mins}m`);
-  } catch {
-    setSleep('N/A');
-  }
-};
-
-useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-
-  if (params.get("fitbit") === "connected") {
-    window.history.replaceState({}, document.title, "/dashboard");
   }
 
-  fetchHeartRate();
-  fetchSteps();
-  fetchSleep();
-
-  let startY = 0;
-
-  const onTouchStart = (e) => {
-    startY = e.touches[0].clientY;
-  };
-
-  const onTouchEnd = (e) => {
-    const endY = e.changedTouches[0].clientY;
-
-    // If user pulled down
-    if (endY - startY > 120) {
-      fetchHeartRate();
-      fetchSteps();
-      fetchSleep();
+  const fetchSleep = async () => {
+    try {
+      const data = await fitbitService.getSleep()
+      const minutes = data?.sleep?.[0]?.minutesAsleep
+      if (!minutes) { setSleep('N/A'); return }
+      setSleep(`${Math.floor(minutes / 60)}h ${minutes % 60}m`)
+    } catch {
+      setSleep('N/A')
     }
-  };
+  }
 
-  window.addEventListener("touchstart", onTouchStart);
-  window.addEventListener("touchend", onTouchEnd);
+  const fetchActivityMinutes = async () => {
+    try {
+      const data = await fitbitService.getSteps()
+      const minutes = data?.summary?.veryActiveMinutes ?? data?.summary?.fairlyActiveMinutes ?? 'N/A'
+      setActivityMinutes(minutes)
+    } catch {
+      setActivityMinutes('N/A')
+    }
+  }
 
-  return () => {
-    window.removeEventListener("touchstart", onTouchStart);
-    window.removeEventListener("touchend", onTouchEnd);
-  };
-}, []);
-
-  const handleEmergency = () => {
+ const startAlert = (alertId) => {
+    confirmedRef.current = false
+    setActiveAlert({ alertId })
+    setCountdown(COUNTDOWN_SECONDS)
+    // grab GPS right away so it's ready if they confirm
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          const locationMessage = `Emergency Alert! Location: https://maps.google.com/?q=${latitude},${longitude}`;
-          
-          // For demo: open email client with location
-          const email = 'emergency-contact@example.com'; // Replace with actual contact
-          const subject = 'SmartGuardian Emergency Alert';
-          const body = `URGENT: Emergency assistance requested.\n\nLocation: ${latitude}, ${longitude}\n\nGoogle Maps: https://maps.google.com/?q=${latitude},${longitude}`;
-          
-          window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-          
-          // Also show alert for immediate feedback
-          alert('Emergency alert sent! Location shared with emergency contact.');
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          alert('Unable to get location. Emergency alert sent without location data.');
-          
-          // Still send email without location
-          const email = 'emergency-contact@example.com';
-          const subject = 'SmartGuardian Emergency Alert';
-          const body = 'URGENT: Emergency assistance requested. Location unavailable.';
-          
-          window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        }
-      );
-    } else {
-      alert('Geolocation not supported. Emergency alert sent.');
-      
-      const email = 'emergency-contact@example.com';
-      const subject = 'SmartGuardian Emergency Alert';
-      const body = 'URGENT: Emergency assistance requested. Geolocation not supported.';
-      
-      window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        (pos) => setAlertLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
+        () => setAlertLocation(null)
+      )
     }
-  };
+  }
+
+  const checkForAlerts = async () => {
+    if (activeAlert) return
+    try {
+      const data = await alertService.getLatestPending()
+      if (data.pending) startAlert(data.alertId)
+    } catch {
+      // silently ignore poll failures
+    }
+  }
+
+  // user tapped "I'm Okay" - false alarm
+  const handleCancel = async () => {
+    clearInterval(countdownRef.current)
+    if (activeAlert) {
+      try { await alertService.cancelAlert(activeAlert.alertId) } catch { }
+    }
+    setActiveAlert(null)
+  }
+
+  // user tapped "Send Help" or countdown expired
+  const handleConfirm = async () => {
+    if (confirmedRef.current) return
+    confirmedRef.current = true
+    clearInterval(countdownRef.current)
+    if (activeAlert) {
+      try {
+        await alertService.confirmAlert(activeAlert.alertId, {
+          latitude: alertLocation?.latitude ?? null,
+          longitude: alertLocation?.longitude ?? null,
+          heartRate: typeof heartRate === 'number' ? heartRate : null,
+          steps: typeof steps === 'number' ? steps : null
+        })
+      } catch { }
+    }
+    setActiveAlert(null)
+  }
+
+  // red SOS button - manual alert, skips countdown entirely
+  const handleSOS = () => {
+    navigator.geolocation?.getCurrentPosition(
+      async (pos) => {
+        try {
+          await alertService.createManualAlert({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            heartRate: typeof heartRate === 'number' ? heartRate : null,
+            steps: typeof steps === 'number' ? steps : null
+          })
+        } catch { }
+      },
+      async () => {
+        try { await alertService.createManualAlert({}) } catch { }
+      }
+    )
+  }
+
+  // countdown ticker - auto-confirms when it hits 0
+  useEffect(() => {
+    if (!activeAlert) return
+    countdownRef.current = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(countdownRef.current)
+          handleConfirm()
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+    return () => clearInterval(countdownRef.current)
+  }, [activeAlert])  
+
+  useEffect(() => {
+    const fitbitRef = setInterval(() => {
+      fetchActivityMinutes()
+      fetchHeartRate()
+      fetchSteps()
+      fetchSleep()
+    }, FITBIT_REFRESH_INTERVAL)
+    return () => clearInterval(fitbitRef)
+  }, [])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("fitbit") === "connected") {
+      window.history.replaceState({}, document.title, "/dashboard");
+    }
+
+    fetchActivityMinutes();
+    fetchHeartRate();
+    fetchSteps();
+    fetchSleep();
+
+    pollRef.current = setInterval(checkForAlerts, ALERT_POLL_INTERVAL)
+
+    let startY = 0
+    const onTouchStart = (e) => { startY = e.touches[0].clientY }
+    const onTouchEnd = (e) => {
+      const endY = e.changedTouches[0].clientY
+      if (endY - startY > 120) {
+        const token = localStorage.getItem("token")
+        if (heartRate === "Pull to connect") {
+          window.location.href = "http://localhost:8080/api/auth/fitbit/connect?token=" + token
+        } else {
+          fetchHeartRate()
+          fetchSteps()
+          fetchSleep()
+          fetchActivityMinutes()
+        }
+      }
+    }
+
+    window.addEventListener("touchstart", onTouchStart);
+    window.addEventListener("touchend", onTouchEnd);
+
+    return () => {
+      clearInterval(pollRef.current)
+      clearInterval(countdownRef.current)
+      window.removeEventListener("touchstart", onTouchStart)
+      window.removeEventListener("touchend", onTouchEnd)
+    }
+  }, [])
 
   const handleLogout = () => {
     if (window.confirm('Are you sure you want to log out?')) {
       onLogout && onLogout();
     }
-  };
+  }
 
   return (
     <div className="dashboard">
+      
+      {/* thin red banner when a fall is detected */}
+      {activeAlert && (
+        <div className="fall-banner">
+          <span className="fall-banner-text">Fall detected — scroll down to respond</span>
+          <button className="fall-banner-dismiss" onClick={handleCancel}>I'm Okay</button>
+        </div>
+      )}
+
       <header className="dashboard-header">
         <div className="header-content">
           <div className="header-left">
@@ -169,7 +237,7 @@ useEffect(() => {
             </div>
           </div>
           <div className="header-right">
-            <button className="profile-button" title="Profile" onClick={handleLogout}>
+            <button className="profile-button" title="Profile" onClick={onNavigateToSettings}>
               <FaUser className="button-icon" />
             </button>
           </div>
@@ -183,9 +251,9 @@ useEffect(() => {
             <div className="metric-card">
               <div className="metric-info">
                 <FaHeartbeat className="metric-icon" />
-                <span className="metric-value">{heartRate ?? '--'}</span>
-                <span className="metric-unit">BPM</span>
-                <span className="metric-label">Heart Rate</span>
+                <span className="metric-value">{activityMinutes ?? '--'}</span>
+                <span className="metric-unit">min</span>
+                <span className="metric-label">Activity Minutes</span>
               </div>
             </div>
             <div className="metric-card">
@@ -214,19 +282,48 @@ useEffect(() => {
             </div>
           </div>
         </div>
+
+        {/* alert response card - only shown when a fall is pending */}
+        {activeAlert && (
+          <div className="alert-card">
+            <div className="alert-card-header">
+              <span className="alert-card-title">Fall Detected</span>
+            </div>
+            <p className="alert-card-body">
+              A fall was detected by your device. Do you need help?
+            </p>
+            <div className="alert-countdown-bar-wrap">
+              <div
+                className="alert-countdown-bar"
+                style={{ width: `${(countdown / COUNTDOWN_SECONDS) * 100}%` }}
+              />
+            </div>
+            <p className="alert-countdown-text">
+              Caregiver notified automatically in <strong>{countdown}s</strong> if no response
+            </p>
+            <div className="alert-card-buttons">
+              <button className="alert-btn-okay" onClick={handleCancel}>I'm Okay</button>
+              <button className="alert-btn-help" onClick={handleConfirm}>Send Help</button>
+            </div>
+          </div>
+        )}
       </main>
-      
+
+      {/* two-button footer - no more emergency button here */}
       <footer className="dashboard-footer">
         <button className="footer-button" title="Appointments" onClick={onNavigateToAppointments}>
           <FaCalendarAlt className="button-icon" />
-        </button>
-        <button className="footer-button assistance-button" title="Emergency Assistance" onClick={handleEmergency}>
-          <FaExclamationTriangle className="button-icon" />
         </button>
         <button className="footer-button" title="Medications" onClick={onNavigateToMedications}>
           <FaPills className="button-icon" />
         </button>
       </footer>
+
+      {/* always-visible SOS button - fixed bottom right, above the footer */}
+      <button className="sos-button" onClick={handleSOS} title="Send Emergency Alert">
+        SOS
+      </button>
+
     </div>
   )
 }
