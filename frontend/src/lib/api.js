@@ -24,6 +24,12 @@ async function request(path, opts = {}) {
   // Build full URL using the configured API base.
   const res = await fetch(`${API_BASE}${path}`, init)
 
+    if (res.status === 401) {
+    localStorage.removeItem("token")
+    window.location.href = "/login"
+    return
+  }
+
   // Read response as text first so we can gracefully handle non-JSON responses.
   const text = await res.text()
   let body = null
@@ -48,7 +54,11 @@ async function request(path, opts = {}) {
 function authRequest(path, opts = {}) {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
   const headers = { ...(opts.headers || {}) }
-  if (token) headers['Authorization'] = `Bearer ${token}`
+
+  if (token && token !== "null" && token !== "undefined") {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
   return request(path, { ...opts, headers })
 }
 
