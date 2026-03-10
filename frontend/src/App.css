@@ -33,6 +33,18 @@ body {
   box-sizing: border-box;
 }
 
+.sg-page {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  overflow-x: hidden;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .auth-header {
   display: flex;
   flex-direction: column;
