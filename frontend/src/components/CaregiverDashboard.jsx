@@ -2,7 +2,6 @@
 // shows a status card in the white body, flips to full red view when alert arrives
 
 import { useState, useEffect, useRef } from 'react'
-import { FaUser } from 'react-icons/fa'
 import alertService from '../services/alertService'
 import './CaregiverDashboard.css'
 
@@ -19,12 +18,17 @@ function CaregiverDashboard({ onLogout }) {
     try {
       const data = await alertService.getLatestConfirmed()
       setLastChecked(new Date().toLocaleTimeString())
-      if (data.alert) {
-        setActiveAlert(data.alert)
+
+      if (data?.active) {
+        setActiveAlert({
+          id: data.alertId,
+          name: data.name,
+          latitude: data.latitude,
+          longitude: data.longitude,
+          phoneNumber: data.phoneNumber
+        })
       }
-    } catch {
-      // silently ignore
-    }
+    } catch { }
   }
 
   useEffect(() => {
@@ -33,10 +37,25 @@ function CaregiverDashboard({ onLogout }) {
     return () => clearInterval(pollRef.current)
   }, [])
 
+  useEffect(() => {
+    if (activeAlert) {
+      navigator.vibrate?.([400, 200, 400, 200, 400])
+
+      const alarm = new Audio("/alarm.mp3")
+      alarm.loop = true
+      alarm.play().catch(() => { })
+
+      return () => alarm.pause()
+    }
+  }, [activeAlert])
+
   const handleRespond = async (action) => {
     if (activeAlert) {
-      try { await alertService.resolveAlert(activeAlert.id) } catch { }
+      try {
+        await alertService.respondAlert(activeAlert.id, action)
+      } catch {}
     }
+
     setResponded(true)
     setActiveAlert(null)
   }
@@ -47,7 +66,7 @@ function CaregiverDashboard({ onLogout }) {
       <div className="cg-emergency">
         <div className="cg-emergency-ring" />
         <h2 className="cg-emergency-title">Alert</h2>
-        <p className="cg-emergency-name">{activeAlert.userName} needs help</p>
+        <p className="cg-emergency-name">{activeAlert.name} needs help</p>
         {activeAlert.latitude && (
           <a
             className="cg-emergency-map"
@@ -59,6 +78,16 @@ function CaregiverDashboard({ onLogout }) {
           </a>
         )}
         <div className="cg-emergency-buttons">
+          <button className="alert-call-btn" onClick={() => {
+            if (activeAlert.phoneNumber) {
+              window.location.href = `tel:${activeAlert.phoneNumber}`
+            } else {
+              alert("No phone number available for this user.")
+            }
+          }}
+          >
+            Call {activeAlert.name}
+          </button>
           <button className="cg-btn-onway" onClick={() => handleRespond('onway')}>
             I'm On My Way
           </button>

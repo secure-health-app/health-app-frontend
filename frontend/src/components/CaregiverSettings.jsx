@@ -15,6 +15,7 @@ function CaregiverSettings({ onBack, onLogout }) {
     const [status, setStatus] = useState(null)  // 'success' | 'error' | null
     const [message, setMessage] = useState('')
     const [loading, setLoading] = useState(false)
+    const [phone, setPhone] = useState('')
 
     // load the currently linked caregiver when the screen opens
     useEffect(() => {
@@ -49,7 +50,10 @@ function CaregiverSettings({ onBack, onLogout }) {
             const res = await fetch(`${API_BASE}/api/alerts/caregiver-link`, {
                 method: 'PUT',
                 headers: getAuthHeader(),
-                body: JSON.stringify({ caregiverUsername: caregiverEmail.trim() })
+                body: JSON.stringify({
+                    caregiverUsername: caregiverEmail.trim(),
+                    phoneNumber: phone
+                })
             })
             const data = await res.json()
 
@@ -74,7 +78,7 @@ function CaregiverSettings({ onBack, onLogout }) {
         <div className="sg-page">
             <div className="cs-header">
                 <div className="cs-header-left">
-                    <button className="cs-back" onClick={onBack}>&#8592;</button>
+                    <button className="cs-back" onClick={onBack}>❮</button>
                     <img src="/Logo.png" alt="SmartGuardian Logo" />
                     <div>
                         <h1>SmartGuardian</h1>
@@ -99,6 +103,15 @@ function CaregiverSettings({ onBack, onLogout }) {
                     </div>
                 )}
 
+                <label className="cs-label">Your phone number</label>
+                <input
+                    className="cs-input"
+                    type="tel"
+                    placeholder="Enter your phone number"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                />
+
                 <label className="cs-label" htmlFor="caregiverInput">
                     Caregiver email address
                 </label>
@@ -109,7 +122,7 @@ function CaregiverSettings({ onBack, onLogout }) {
                     placeholder="Enter their email address"
                     value={caregiverEmail}
                     onChange={(e) => {
-                        setCaregiverEmail(e.target.value)
+                        setCaregiverEmail(e.target.value.toLowerCase())    
                         setStatus(null)
                     }}
                 />

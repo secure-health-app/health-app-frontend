@@ -55,7 +55,7 @@ function authRequest(path, opts = {}) {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
   const headers = { ...(opts.headers || {}) }
 
-  if (token && token !== "null" && token !== "undefined") {
+  if (token && token.trim() !== "" && token !== "null" && token !== "undefined") {
     headers['Authorization'] = `Bearer ${token}`
   }
 

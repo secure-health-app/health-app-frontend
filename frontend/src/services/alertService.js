@@ -56,11 +56,29 @@ const alertService = {
   // Caregiver tapped a response button - marks alert as resolved so it stops showing
   resolveAlert: async (alertId) => {
     const res = await fetch(`${API_BASE}/api/alerts/caregiver/${alertId}/resolve`, {
-      method: 'POST', headers: getAuthHeader()
+      method: 'POST',
+      headers: getAuthHeader()
     })
     if (!res.ok) throw new Error('Resolve failed')
     return res.json()
+  },
+
+  respondAlert: async (id, action) => {
+    const token = localStorage.getItem("token")
+
+    const res = await fetch(`${API_BASE}/api/alerts/caregiver/${id}/resolve`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ action })
+    })
+
+    if (!res.ok) throw new Error('Respond failed')
+    return res.json()
   }
+
 }
 
 export default alertService

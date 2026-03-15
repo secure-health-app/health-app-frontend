@@ -137,6 +137,7 @@
   margin-top: 8px;
 }
 
+.alert-call-btn,
 .cg-btn-onway {
   background: #fff;
   color: #c0392b;
@@ -146,6 +147,7 @@
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
+    width: 100%;
 }
 
 .cg-btn-emergency {
@@ -157,4 +159,5 @@
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
+  width: 100%;
 }

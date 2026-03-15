@@ -10,11 +10,12 @@ const FITBIT_REFRESH_INTERVAL = 1 * 60 * 1000  // 1 minute
 
 function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications, onNavigateToSettings }) {
 
-  const [activityMinutes, setActivityMinutes] = useState(null) 
+  const [activityMinutes, setActivityMinutes] = useState(null)
   const [steps, setSteps] = useState(null);
   const [sleep, setSleep] = useState(null);
   const [restingHR, setRestingHR] = useState(null);
   const [heartRate, setHeartRate] = useState(null);
+  const [caregiverMessage, setCaregiverMessage] = useState(null)
 
   // fall alert state
   const [activeAlert, setActiveAlert] = useState(null)
@@ -73,7 +74,7 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
     }
   }
 
- const startAlert = (alertId) => {
+  const startAlert = (alertId) => {
     confirmedRef.current = false
     setActiveAlert({ alertId })
     setCountdown(COUNTDOWN_SECONDS)
@@ -94,6 +95,29 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
     } catch {
       // silently ignore poll failures
     }
+  }
+
+  const checkCaregiverResponse = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/alerts/user/latest", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
+      })
+
+      const data = await res.json()
+
+      if (!data.active) return
+
+      if (data.status === "CAREGIVER_ON_THE_WAY") {
+        setCaregiverMessage("Your caregiver is on the way.")
+      }
+
+      if (data.status === "EMERGENCY_SERVICES_CALLED") {
+        setCaregiverMessage("Emergency services have been contacted.")
+      }
+
+    } catch { }
   }
 
   // user tapped "I'm Okay" - false alarm
@@ -156,15 +180,19 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
       })
     }, 1000)
     return () => clearInterval(countdownRef.current)
-  }, [activeAlert])  
+  }, [activeAlert])
 
   useEffect(() => {
+    const token = localStorage.getItem("token")
+    if (!token) return
+
     const fitbitRef = setInterval(() => {
       fetchActivityMinutes()
       fetchHeartRate()
       fetchSteps()
       fetchSleep()
     }, FITBIT_REFRESH_INTERVAL)
+
     return () => clearInterval(fitbitRef)
   }, [])
 
@@ -175,12 +203,18 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
       window.history.replaceState({}, document.title, "/dashboard");
     }
 
+    const token = localStorage.getItem("token")
+    if (!token) return
+
     fetchActivityMinutes();
     fetchHeartRate();
     fetchSteps();
     fetchSleep();
 
-    pollRef.current = setInterval(checkForAlerts, ALERT_POLL_INTERVAL)
+    pollRef.current = setInterval(() => {
+      checkForAlerts()
+      checkCaregiverResponse()
+    }, ALERT_POLL_INTERVAL)
 
     let startY = 0
     const onTouchStart = (e) => { startY = e.touches[0].clientY }
@@ -218,12 +252,20 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
 
   return (
     <div className="dashboard">
-      
+
       {/* thin red banner when a fall is detected */}
       {activeAlert && (
         <div className="fall-banner">
-          <span className="fall-banner-text">Fall detected — scroll down to respond</span>
+          <span className="fall-banner-text">Fall detected - scroll down to respond</span>
           <button className="fall-banner-dismiss" onClick={handleCancel}>I'm Okay</button>
+        </div>
+      )}
+
+      {caregiverMessage && (
+        <div className="caregiver-banner">
+          ✔ Caregiver has acknowledged your alert
+          <br />
+          {caregiverMessage}
         </div>
       )}
 
@@ -243,7 +285,7 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
           </div>
         </div>
       </header>
-      
+
       <main className="dashboard-main">
         <div className="health-metrics">
           <h2>Today's Health Metrics</h2>
@@ -266,7 +308,7 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
             </div>
             <div className="metric-card">
               <div className="metric-info">
-                <FaMoon className="metric-icon" />                
+                <FaMoon className="metric-icon" />
                 <span className="metric-value">{sleep ?? '--'}</span>
                 <span className="metric-unit">last night</span>
                 <span className="metric-label">Sleep</span>
@@ -282,6 +324,10 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
             </div>
           </div>
         </div>
+
+        <button className="sos-button" onClick={handleSOS} title="Send Emergency Alert">
+          SOS
+        </button>
 
         {/* alert response card - only shown when a fall is pending */}
         {activeAlert && (
@@ -318,11 +364,6 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
           <FaPills className="button-icon" />
         </button>
       </footer>
-
-      {/* always-visible SOS button - fixed bottom right, above the footer */}
-      <button className="sos-button" onClick={handleSOS} title="Send Emergency Alert">
-        SOS
-      </button>
 
     </div>
   )

@@ -104,15 +104,22 @@
 .dashboard-main {
   flex: 1;
   padding: 8px;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
   padding-bottom: 90px;
+  display: flex;
+  flex-direction: column;  /* ← add this */
+  align-items: center;
   overflow-x: hidden;
   width: 100%;
-  max-width: 100%;
   box-sizing: border-box;
-  margin: 0 auto;
+}
+
+.dashboard-content {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
 }
 
 .health-metrics {
@@ -906,4 +913,36 @@
 
 .button-icon-small {
   font-size: 0.8rem;
+}
+
+.sos-button {
+  display: block;
+  margin: 80px auto 0;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 150px;
+  height: 150px;
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.5);
+  transition: all 0.3s ease;
+}
+
+.sos-button:hover {
+  background: #c82333;
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(220, 53, 69, 0.6);
+}
+
+.caregiver-banner {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 12px;
+  text-align: center;
+  font-weight: 600;
+  border-bottom: 2px solid #4caf50;
 }
