@@ -36,12 +36,6 @@
   padding: 0;
 }
 
-html {
-  overflow-x: hidden;
-  width: 100%;
-  max-width: 100%;
-}
-
 a {
   font-weight: 500;
   color: var(--color-primary);
@@ -57,15 +51,15 @@ body {
   min-height: 100vh;
   background-color: var(--color-bg);
   color: var(--text-dark);
-  overflow-x: hidden;
   width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
+  overflow-x: hidden;  
+  overflow-y: hidden;
 }
 
 #root {
   width: 100%;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 h1 {

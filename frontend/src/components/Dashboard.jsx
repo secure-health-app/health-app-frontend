@@ -16,6 +16,7 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
   const [restingHR, setRestingHR] = useState(null);
   const [heartRate, setHeartRate] = useState(null);
   const [caregiverMessage, setCaregiverMessage] = useState(null)
+  const [messageShown, setMessageShown] = useState(false)
 
   // fall alert state
   const [activeAlert, setActiveAlert] = useState(null)
@@ -97,28 +98,52 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
     }
   }
 
-  const checkCaregiverResponse = async () => {
-    try {
-      const res = await fetch("http://localhost:8080/api/alerts/user/latest", {
+const checkCaregiverResponse = async () => {
+  try {
+    const res = await fetch("http://localhost:8080/api/alerts/user/latest", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+      }
+    })
+
+    const data = await res.json()
+
+    if (!data.active) return
+
+    // ONLY show if not seen yet
+    if (
+      data.status === "CAREGIVER_ON_THE_WAY" &&
+      !data.seenByUser &&
+      !messageShown
+
+    ) {
+      setCaregiverMessage("Your caregiver is on the way.")
+      setMessageShown(true)
+
+      // mark as seen
+      fetch(`http://localhost:8080/api/alerts/user/${data.alertId}/mark-seen`, {
+        method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`
         }
       })
+    }
 
-      const data = await res.json()
+    if (
+      data.status === "EMERGENCY_SERVICES_CALLED" &&
+      !data.seenByUser
+    ) {
+      setCaregiverMessage("Emergency services have been contacted.")
 
-      if (!data.active) return
-
-      if (data.status === "CAREGIVER_ON_THE_WAY") {
-        setCaregiverMessage("Your caregiver is on the way.")
-      }
-
-      if (data.status === "EMERGENCY_SERVICES_CALLED") {
-        setCaregiverMessage("Emergency services have been contacted.")
-      }
-
-    } catch { }
-  }
+      fetch(`http://localhost:8080/api/alerts/user/${data.alertId}/mark-seen`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
+      })
+    }
+  } catch { }
+}
 
   // user tapped "I'm Okay" - false alarm
   const handleCancel = async () => {
@@ -263,9 +288,20 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
 
       {caregiverMessage && (
         <div className="caregiver-banner">
-          ✔ Caregiver has acknowledged your alert
-          <br />
-          {caregiverMessage}
+          <div className="caregiver-banner-text">
+            ✔ Caregiver has acknowledged your alert
+            <br />
+            {caregiverMessage}
+          </div>
+
+          <button
+            className="caregiver-dismiss-btn"
+            onClick={() => {
+              setCaregiverMessage(null)
+            }}
+          >
+            OK
+          </button>
         </div>
       )}
 
