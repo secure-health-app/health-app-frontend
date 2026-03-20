@@ -20,8 +20,7 @@ function App() {
       setIsLoggedIn(true)
       if (savedRole) setRole(savedRole)
     } else {
-      localStorage.setItem('token', 'demo-token')
-      setIsLoggedIn(true)
+      setIsLoggedIn(false)
     }
   }, [])
 
