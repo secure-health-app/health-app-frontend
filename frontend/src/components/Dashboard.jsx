@@ -6,19 +6,18 @@ import alertService from '../services/alertService'
 
 const ALERT_POLL_INTERVAL = 5000
 const COUNTDOWN_SECONDS = 30
-const FITBIT_REFRESH_INTERVAL = 1 * 60 * 1000  // 1 minute
+const FITBIT_REFRESH_INTERVAL = 1 * 60 * 1000
 
 function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications, onNavigateToSettings }) {
 
   const [activityMinutes, setActivityMinutes] = useState(null)
-  const [steps, setSteps] = useState(null);
-  const [sleep, setSleep] = useState(null);
-  const [restingHR, setRestingHR] = useState(null);
-  const [heartRate, setHeartRate] = useState(null);
+  const [steps, setSteps] = useState(null)
+  const [sleep, setSleep] = useState(null)
+  const [restingHR, setRestingHR] = useState(null)
+  const [heartRate, setHeartRate] = useState(null)
   const [caregiverMessage, setCaregiverMessage] = useState(null)
   const [messageShown, setMessageShown] = useState(false)
 
-  // fall alert state
   const [activeAlert, setActiveAlert] = useState(null)
   const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS)
   const [alertLocation, setAlertLocation] = useState(null)
@@ -26,6 +25,10 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
   const confirmedRef = useRef(false)
   const pollRef = useRef(null)
   const countdownRef = useRef(null)
+  // ref mirror of activeAlert - fixes stale closure in poll interval
+  const activeAlertRef = useRef(null)
+
+  // Fitbit 
 
   const fetchHeartRate = async () => {
     try {
@@ -36,7 +39,6 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
       setRestingHR(resting ?? 'N/A')
     } catch (error) {
       if (error?.status === 401) {
-        console.log("Fitbit not connected yet")
         setHeartRate("Pull to connect")
         return
       }
@@ -75,11 +77,14 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
     }
   }
 
+  // Alert logic 
+
   const startAlert = (alertId) => {
     confirmedRef.current = false
-    setActiveAlert({ alertId })
+    const alert = { alertId }
+    activeAlertRef.current = alert
+    setActiveAlert(alert)
     setCountdown(COUNTDOWN_SECONDS)
-    // grab GPS right away so it's ready if they confirm
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => setAlertLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
@@ -89,79 +94,60 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
   }
 
   const checkForAlerts = async () => {
-    if (activeAlert) return
+    if (activeAlertRef.current) return  // ref - never stale
     try {
       const data = await alertService.getLatestPending()
       if (data.pending) startAlert(data.alertId)
-    } catch {
-      // silently ignore poll failures
-    }
+    } catch { }
   }
 
-const checkCaregiverResponse = async () => {
-  try {
-    const res = await fetch("http://localhost:8080/api/alerts/user/latest", {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`
+  const checkCaregiverResponse = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/alerts/user/latest", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      })
+      const data = await res.json()
+      if (!data.active) return
+
+      if (data.status === "CAREGIVER_ON_THE_WAY" && !data.seenByUser && !messageShown) {
+        setCaregiverMessage("Your caregiver is on the way.")
+        setMessageShown(true)
+        fetch(`http://localhost:8080/api/alerts/user/${data.alertId}/mark-seen`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        })
       }
-    })
 
-    const data = await res.json()
+      if (data.status === "EMERGENCY_SERVICES_CALLED" && !data.seenByUser) {
+        setCaregiverMessage("Emergency services have been contacted.")
+        fetch(`http://localhost:8080/api/alerts/user/${data.alertId}/mark-seen`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        })
+      }
+    } catch { }
+  }
 
-    if (!data.active) return
-
-    // ONLY show if not seen yet
-    if (
-      data.status === "CAREGIVER_ON_THE_WAY" &&
-      !data.seenByUser &&
-      !messageShown
-
-    ) {
-      setCaregiverMessage("Your caregiver is on the way.")
-      setMessageShown(true)
-
-      // mark as seen
-      fetch(`http://localhost:8080/api/alerts/user/${data.alertId}/mark-seen`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        }
-      })
-    }
-
-    if (
-      data.status === "EMERGENCY_SERVICES_CALLED" &&
-      !data.seenByUser
-    ) {
-      setCaregiverMessage("Emergency services have been contacted.")
-
-      fetch(`http://localhost:8080/api/alerts/user/${data.alertId}/mark-seen`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        }
-      })
-    }
-  } catch { }
-}
-
-  // user tapped "I'm Okay" - false alarm
   const handleCancel = async () => {
     clearInterval(countdownRef.current)
-    if (activeAlert) {
-      try { await alertService.cancelAlert(activeAlert.alertId) } catch { }
-    }
+    const alert = activeAlertRef.current
+    activeAlertRef.current = null
     setActiveAlert(null)
+    if (alert) {
+      try { await alertService.cancelAlert(alert.alertId) } catch { }
+    }
   }
 
-  // user tapped "Send Help" or countdown expired
   const handleConfirm = async () => {
     if (confirmedRef.current) return
     confirmedRef.current = true
     clearInterval(countdownRef.current)
-    if (activeAlert) {
+    const alert = activeAlertRef.current
+    activeAlertRef.current = null
+    setActiveAlert(null)
+    if (alert) {
       try {
-        await alertService.confirmAlert(activeAlert.alertId, {
+        await alertService.confirmAlert(alert.alertId, {
           latitude: alertLocation?.latitude ?? null,
           longitude: alertLocation?.longitude ?? null,
           heartRate: typeof heartRate === 'number' ? heartRate : null,
@@ -169,10 +155,8 @@ const checkCaregiverResponse = async () => {
         })
       } catch { }
     }
-    setActiveAlert(null)
   }
 
-  // red SOS button - manual alert, skips countdown entirely
   const handleSOS = () => {
     navigator.geolocation?.getCurrentPosition(
       async (pos) => {
@@ -191,7 +175,7 @@ const checkCaregiverResponse = async () => {
     )
   }
 
-  // countdown ticker - auto-confirms when it hits 0
+  // countdown - keyed on alertId to avoid restart on re-render
   useEffect(() => {
     if (!activeAlert) return
     countdownRef.current = setInterval(() => {
@@ -205,36 +189,27 @@ const checkCaregiverResponse = async () => {
       })
     }, 1000)
     return () => clearInterval(countdownRef.current)
-  }, [activeAlert])
+  }, [activeAlert?.alertId])
 
   useEffect(() => {
     const token = localStorage.getItem("token")
     if (!token) return
-
     const fitbitRef = setInterval(() => {
-      fetchActivityMinutes()
-      fetchHeartRate()
-      fetchSteps()
-      fetchSleep()
+      fetchActivityMinutes(); fetchHeartRate(); fetchSteps(); fetchSleep()
     }, FITBIT_REFRESH_INTERVAL)
-
     return () => clearInterval(fitbitRef)
   }, [])
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-
+    const params = new URLSearchParams(window.location.search)
     if (params.get("fitbit") === "connected") {
-      window.history.replaceState({}, document.title, "/dashboard");
+      window.history.replaceState({}, document.title, "/dashboard")
     }
 
     const token = localStorage.getItem("token")
     if (!token) return
 
-    fetchActivityMinutes();
-    fetchHeartRate();
-    fetchSteps();
-    fetchSleep();
+    fetchActivityMinutes(); fetchHeartRate(); fetchSteps(); fetchSleep()
 
     pollRef.current = setInterval(() => {
       checkForAlerts()
@@ -250,16 +225,13 @@ const checkCaregiverResponse = async () => {
         if (heartRate === "Pull to connect") {
           window.location.href = "http://localhost:8080/api/auth/fitbit/connect?token=" + token
         } else {
-          fetchHeartRate()
-          fetchSteps()
-          fetchSleep()
-          fetchActivityMinutes()
+          fetchHeartRate(); fetchSteps(); fetchSleep(); fetchActivityMinutes()
         }
       }
     }
 
-    window.addEventListener("touchstart", onTouchStart);
-    window.addEventListener("touchend", onTouchEnd);
+    window.addEventListener("touchstart", onTouchStart)
+    window.addEventListener("touchend", onTouchEnd)
 
     return () => {
       clearInterval(pollRef.current)
@@ -269,37 +241,17 @@ const checkCaregiverResponse = async () => {
     }
   }, [])
 
-  const handleLogout = () => {
-    if (window.confirm('Are you sure you want to log out?')) {
-      onLogout && onLogout();
-    }
-  }
-
   return (
     <div className="dashboard">
 
-      {/* thin red banner when a fall is detected */}
-      {activeAlert && (
-        <div className="fall-banner">
-          <span className="fall-banner-text">Fall detected - scroll down to respond</span>
-          <button className="fall-banner-dismiss" onClick={handleCancel}>I'm Okay</button>
-        </div>
-      )}
-
-      {caregiverMessage && (
+      {caregiverMessage && !activeAlert && (
         <div className="caregiver-banner">
           <div className="caregiver-banner-text">
-            ✔ Caregiver has acknowledged your alert
+            Caregiver has acknowledged your alert
             <br />
             {caregiverMessage}
           </div>
-
-          <button
-            className="caregiver-dismiss-btn"
-            onClick={() => {
-              setCaregiverMessage(null)
-            }}
-          >
+          <button className="caregiver-dismiss-btn" onClick={() => setCaregiverMessage(null)}>
             OK
           </button>
         </div>
@@ -364,34 +316,8 @@ const checkCaregiverResponse = async () => {
         <button className="sos-button" onClick={handleSOS} title="Send Emergency Alert">
           SOS
         </button>
-
-        {/* alert response card - only shown when a fall is pending */}
-        {activeAlert && (
-          <div className="alert-card">
-            <div className="alert-card-header">
-              <span className="alert-card-title">Fall Detected</span>
-            </div>
-            <p className="alert-card-body">
-              A fall was detected by your device. Do you need help?
-            </p>
-            <div className="alert-countdown-bar-wrap">
-              <div
-                className="alert-countdown-bar"
-                style={{ width: `${(countdown / COUNTDOWN_SECONDS) * 100}%` }}
-              />
-            </div>
-            <p className="alert-countdown-text">
-              Caregiver notified automatically in <strong>{countdown}s</strong> if no response
-            </p>
-            <div className="alert-card-buttons">
-              <button className="alert-btn-okay" onClick={handleCancel}>I'm Okay</button>
-              <button className="alert-btn-help" onClick={handleConfirm}>Send Help</button>
-            </div>
-          </div>
-        )}
       </main>
 
-      {/* two-button footer - no more emergency button here */}
       <footer className="dashboard-footer">
         <button className="footer-button" title="Appointments" onClick={onNavigateToAppointments}>
           <FaCalendarAlt className="button-icon" />
@@ -400,6 +326,32 @@ const checkCaregiverResponse = async () => {
           <FaPills className="button-icon" />
         </button>
       </footer>
+
+      {/* modal overlay — appears centred over the whole screen, no scrolling needed */}
+      {activeAlert && (
+        <div className="fall-modal-overlay">
+          <div className="fall-modal">
+            <div className="fall-modal-icon">!</div>
+            <h2 className="fall-modal-title">Fall Detected</h2>
+            <p className="fall-modal-body">
+              A fall was detected by your device. Do you need help?
+            </p>
+            <div className="fall-modal-bar-wrap">
+              <div
+                className="fall-modal-bar"
+                style={{ width: `${(countdown / COUNTDOWN_SECONDS) * 100}%` }}
+              />
+            </div>
+            <p className="fall-modal-countdown">
+              Help sent automatically in <strong>{countdown}s</strong>
+            </p>
+            <div className="fall-modal-buttons">
+              <button className="fall-btn-okay" onClick={handleCancel}>I'm Okay</button>
+              <button className="fall-btn-help" onClick={handleConfirm}>Send Help</button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   )
