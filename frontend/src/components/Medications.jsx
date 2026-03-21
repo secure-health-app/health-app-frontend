@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import './Dashboard.css'
+import './Medications.css'
 import { FaPills, FaClock, FaPlus, FaArrowLeft, FaCheckCircle, FaExclamationTriangle, FaTrash } from 'react-icons/fa'
 
 function Medications({ onBack }) {

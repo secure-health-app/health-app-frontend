@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import './Dashboard.css'
+import './Appointments.css'
 import { FaCalendarAlt, FaClock, FaUserMd, FaMapMarkerAlt, FaPlus, FaArrowLeft } from 'react-icons/fa'
 
 function Appointments({ onBack }) {
