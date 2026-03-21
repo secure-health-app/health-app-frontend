@@ -1,11 +1,22 @@
 # SmartGuardian Frontend
 
-Secure AI-integrated digital health application for fall detection and biometric monitoring.
+## Overview
 
-This repository contains the React frontend for the SmartGuardian system.  
-The frontend provides a responsive user interface for patients and caregivers to view health data, receive alerts, and manage emergency contacts.
+This frontend provides the user interface for the SmartGuardian system.  
+It connects to the Spring Boot backend API to display fall alerts, Fitbit health metrics, and emergency notifications.  
+The application is built as a Progressive Web App (PWA) to support mobile devices and offline capability.
 
 ---
+
+## Features
+
+- Real-time fall alerts
+- Fitbit health data dashboard
+- Heart rate and activity monitoring
+- Emergency alert notifications
+- Caregiver acknowledgement system
+- Secure JWT authentication
+- Mobile responsive PWA interface
 
 ## Installation & Setup
 
@@ -13,31 +24,65 @@ The frontend provides a responsive user interface for patients and caregivers to
 ```bash
 git clone https://github.com/secure-health-app/health-app-frontend.git
 cd health-app-frontend/frontend
+npm install
 ```
 
-### Developement Mode:
+### Development Mode
 
 ```bash
-npm install
 npm run dev
 ```
+Runs on:
 
-### Production:
+http://localhost:5173
+
+
+### Production
 
 ```bash
 npm run build
 ```
 
+## Running with Backend
+
+Make sure the backend is running on:
+
+http://localhost:8080
+
+Then start the frontend:
+```bash
+npm run dev
+```
+
 ### Tech Stack
 - React
 - Vite
-- Javascript/JSX
+- JavaScript (JSX)
+- CSS
+- REST API integration
 
+## Environment Variables
 
-## Notes
+Create a `.env` file:
 
-This project was bootstrapped using vite to provide a fast development environment and hightly optimised production builds.
+```bash
+VITE_API_URL=http://localhost:8080
+```
 
+## Project Structure
+```
+frontend/
+├── src/
+├── components/
+├── pages/
+├── services/
+├── App.jsx
+└── main.jsx
+```
 
 ## Author
-Developed by Louise Deeth
+Louise Deeth
+
+BSc (Hons) Software Development
+
+Atlantic Technological University
