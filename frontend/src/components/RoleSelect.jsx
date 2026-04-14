@@ -1,7 +1,9 @@
 import './RoleSelect.css'
 
-// shown once after login so the person can choose which view they need
 
+/* ===================== ROLE SELECT COMPONENT ===================== */
+
+// shown once after login so the person can choose which view they need
 function RoleSelect({ onSelect }) {
   return (
     <div className="sg-page">

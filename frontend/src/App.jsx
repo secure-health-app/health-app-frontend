@@ -8,6 +8,9 @@ import CaregiverDashboard from './components/CaregiverDashboard'
 import CaregiverSettings from './components/CaregiverSettings'
 import RoleSelect from './components/RoleSelect'
 
+
+/* ===================== APP COMPONENT ===================== */
+
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [role, setRole] = useState(null)  // null | 'user' | 'caregiver'

@@ -2,6 +2,8 @@ import { useState } from 'react'
 import './Appointments.css'
 import { FaCalendarAlt, FaClock, FaUserMd, FaMapMarkerAlt, FaPlus, FaArrowLeft } from 'react-icons/fa'
 
+/* ===================== APPOINTMENTS COMPONENT ===================== */
+
 function Appointments({ onBack }) {
   const [view, setView] = useState('upcoming') // 'upcoming' | 'past'
   const [showScheduleForm, setShowScheduleForm] = useState(false)

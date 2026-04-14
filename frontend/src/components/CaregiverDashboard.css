@@ -42,8 +42,17 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.3); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(1.3);
+  }
 }
 
 .cg-status-text {
@@ -99,13 +108,22 @@
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  border: 4px solid rgba(255,255,255,0.6);
+  border: 4px solid rgba(255, 255, 255, 0.6);
   animation: ring-pulse 1.2s infinite;
 }
 
 @keyframes ring-pulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.2); opacity: 0.5; }
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.2);
+    opacity: 0.5;
+  }
 }
 
 .cg-emergency-title {
@@ -117,7 +135,7 @@
 
 .cg-emergency-name {
   font-size: 18px;
-  color: rgba(255,255,255,0.9);
+  color: rgba(255, 255, 255, 0.9);
   margin: 0;
   text-align: center;
 }
@@ -148,13 +166,13 @@
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-    width: 100%;
+  width: 100%;
 }
 
 .cg-btn-emergency {
-  background: rgba(255,255,255,0.15);
+  background: rgba(255, 255, 255, 0.15);
   color: #fff;
-  border: 2px solid rgba(255,255,255,0.6);
+  border: 2px solid rgba(255, 255, 255, 0.6);
   border-radius: 12px;
   padding: 14px;
   font-size: 16px;

@@ -53,13 +53,16 @@ function CaregiverDashboard({ onLogout }) {
     if (activeAlert) {
       try {
         await alertService.respondAlert(activeAlert.id, action)
-      } catch {}
+      } catch { }
     }
 
     setResponded(true)
     setActiveAlert(null)
   }
 
+
+  /* ===================== EMERGENCY VIEW ===================== */
+  
   // full-screen red emergency view when an alert is active
   if (activeAlert) {
     return (
@@ -99,6 +102,9 @@ function CaregiverDashboard({ onLogout }) {
     )
   }
 
+
+  /* ===================== NORMAL VIEW ===================== */
+
   return (
     <div className="sg-page">
       <header className="dashboard-header">
@@ -113,6 +119,8 @@ function CaregiverDashboard({ onLogout }) {
         </div>
       </header>
 
+
+      {/* MAIN */}
       <main className="cg-main">
         {responded ? (
           <div className="cg-status-card cg-status-responded">

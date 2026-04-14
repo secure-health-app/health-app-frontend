@@ -9,6 +9,7 @@
   box-sizing: border-box;
   border-radius: 0;
 }
+
 .cs-header {
   display: flex;
   align-items: center;
@@ -108,7 +109,7 @@
   margin: 16px auto;
   width: calc(100% - 32px);
   max-width: 400px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;

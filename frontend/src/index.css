@@ -5,10 +5,14 @@
   font-weight: 400;
 
   /* Color scheme variables (provided) */
-  --color-primary: #004a9f; /* Deep Blue */
-  --color-secondary: #008b8b; /* Teal */
-  --color-accent: #4caf50; /* Green */
-  --color-bg: #f4f4f4; /* Soft Grey */
+  --color-primary: #004a9f;
+  /* Deep Blue */
+  --color-secondary: #008b8b;
+  /* Teal */
+  --color-accent: #4caf50;
+  /* Green */
+  --color-bg: #f4f4f4;
+  /* Soft Grey */
   --text-dark: #1a1a1a;
   --text-medium: #6b6b6b;
   --text-light: #bfbfbf;
@@ -41,6 +45,7 @@ a {
   color: var(--color-primary);
   text-decoration: inherit;
 }
+
 a:hover {
   color: color-mix(in srgb, var(--color-primary) 80%, black 20%);
 }
@@ -52,7 +57,7 @@ body {
   background-color: var(--color-bg);
   color: var(--text-dark);
   width: 100%;
-  overflow-x: hidden;  
+  overflow-x: hidden;
   overflow-y: hidden;
 }
 
@@ -79,19 +84,26 @@ button {
   cursor: pointer;
   transition: border-color 0.25s, background-color 0.15s;
 }
+
 button:hover {
   border-color: color-mix(in srgb, var(--color-primary) 60%, transparent 40%);
 }
+
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
 @media (prefers-color-scheme: dark) {
+
   /* If user prefers dark, shift background and text for readability */
   :root {
     background-color: #121212;
     color: #e6e6e6;
   }
-  body { background-color: #121212; color: #e6e6e6 }
+
+  body {
+    background-color: #121212;
+    color: #e6e6e6
+  }
 }

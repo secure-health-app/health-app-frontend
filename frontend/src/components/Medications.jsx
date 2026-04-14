@@ -2,6 +2,9 @@ import { useState } from 'react'
 import './Medications.css'
 import { FaPills, FaClock, FaPlus, FaArrowLeft, FaCheckCircle, FaExclamationTriangle, FaTrash } from 'react-icons/fa'
 
+
+/* ===================== MEDICATIONS COMPONENT ===================== */
+
 function Medications({ onBack }) {
   const [showAddForm, setShowAddForm] = useState(false)
   const [newMedication, setNewMedication] = useState({
@@ -151,19 +154,19 @@ function Medications({ onBack }) {
             ) : (
               medications.map(medication => (
                 <div key={medication.id} className="medication-card">
-                    <div className="medication-header">
-                      <div className="medication-name">
-                        <FaPills className="medication-icon" />
-                        <h4>{medication.name}</h4>
-                        {getStatusIcon(medication.status)}
+                  <div className="medication-header">
+                    <div className="medication-name">
+                      <FaPills className="medication-icon" />
+                      <h4>{medication.name}</h4>
+                      {getStatusIcon(medication.status)}
+                    </div>
+                    <div className="medication-header-right">
+                      <div className="medication-dosage">
+                        <span className="dosage-badge">{medication.dosage}</span>
                       </div>
-                      <div className="medication-header-right">
-                        <div className="medication-dosage">
-                          <span className="dosage-badge">{medication.dosage}</span>
-                        </div>
-                        <button className="delete-btn" onClick={() => deleteMedication(medication.id)} title="Delete medication">
-                          <FaTrash />
-                        </button>
+                      <button className="delete-btn" onClick={() => deleteMedication(medication.id)} title="Delete medication">
+                        <FaTrash />
+                      </button>
                     </div>
                   </div>
 

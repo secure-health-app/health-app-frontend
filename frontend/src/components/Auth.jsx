@@ -2,6 +2,9 @@ import { useState } from 'react'
 import '../App.css'
 import { request } from '../lib/api'
 
+
+/* ===================== AUTH COMPONENT ===================== */
+
 export default function Auth({ onLogin }) {
   const [mode, setMode] = useState('login') // 'login' | 'signup'
   const [email, setEmail] = useState('')
@@ -33,10 +36,14 @@ export default function Auth({ onLogin }) {
 
     setLoading(true)
     try {
+
+
+      /* ===================== SIGNUP ===================== */
+
       if (mode === 'signup') {
         const data = await request('/api/auth/signup', {
           method: 'POST',
-          body: JSON.stringify({  email, password }),
+          body: JSON.stringify({ email, password }),
         })
 
         setMessage({ type: 'success', text: data?.message || `Signed up ${email}` })
@@ -45,34 +52,36 @@ export default function Auth({ onLogin }) {
         return
       }
 
-    // login
-    const data = await request('/api/auth/signin', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }), 
-    })
 
-    if (data?.token) {
-      localStorage.setItem('token', data.token)
-      setMessage({ type: 'success', text: 'Logged in' })
-      onLogin && onLogin()
-    } else {
-      setMessage({ type: 'error', text: data?.message || 'Unexpected server response' })
-    }
+      /* ===================== LOGIN ===================== */
+
+      const data = await request('/api/auth/signin', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      })
+
+      if (data?.token) {
+        localStorage.setItem('token', data.token)
+        setMessage({ type: 'success', text: 'Logged in' })
+        onLogin && onLogin()
+      } else {
+        setMessage({ type: 'error', text: data?.message || 'Unexpected server response' })
+      }
       reset()
     } catch (err) {
       // If server returns JSON error, err.body might be an object like {timestamp, status, error, path}
       let errorText = 'Server error'
       if (err?.body) {
-          if (typeof err.body === 'string') {
-              errorText = err.body
-          } else if (err.body.message) {
-              errorText = err.body.message
-          } else if (err.body.error) {
-              // Spring Boot often returns { error: "Bad Request", status: 400 ... }
-              errorText = `${err.body.status || 'Error'} - ${err.body.error}`
-          } else {
-             errorText = JSON.stringify(err.body)
-          }
+        if (typeof err.body === 'string') {
+          errorText = err.body
+        } else if (err.body.message) {
+          errorText = err.body.message
+        } else if (err.body.error) {
+          // Spring Boot often returns { error: "Bad Request", status: 400 ... }
+          errorText = `${err.body.status || 'Error'} - ${err.body.error}`
+        } else {
+          errorText = JSON.stringify(err.body)
+        }
       }
       setMessage({ type: 'error', text: errorText })
     } finally {
