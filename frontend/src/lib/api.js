@@ -26,9 +26,7 @@ async function request(path, opts = {}) {
   const res = await fetch(`${API_BASE}${path}`, init);
 
   if (res.status === 401) {
-    localStorage.removeItem("token");
-    window.location.href = "/";
-    return;
+    throw { status: 401 };
   }
 
   // read as text first (handles non-JSON safely)
