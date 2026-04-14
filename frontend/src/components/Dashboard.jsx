@@ -3,6 +3,13 @@ import { FaHeartbeat, FaCalendarAlt, FaPills, FaWalking, FaMoon, FaUser } from '
 import { useState, useEffect, useRef } from 'react'
 import fitbitService from '../services/fitbitService'
 import alertService from '../services/alertService'
+import { authRequest } from '../lib/api';
+
+const API_BASE = import.meta.env.VITE_API_URL;
+
+if (!API_BASE) {
+  throw new Error("VITE_API_URL is not set");
+}
 
 const ALERT_POLL_INTERVAL = 5000
 const COUNTDOWN_SECONDS = 30
@@ -101,32 +108,33 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
     } catch { }
   }
 
-  const checkCaregiverResponse = async () => {
-    try {
-      const res = await fetch("http://localhost:8080/api/alerts/user/latest", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-      })
-      const data = await res.json()
-      if (!data.active) return
+const checkCaregiverResponse = async () => {
+  try {
+    const data = await authRequest('/api/alerts/user/latest');
 
-      if (data.status === "CAREGIVER_ON_THE_WAY" && !data.seenByUser && !messageShown) {
-        setCaregiverMessage("Your caregiver is on the way.")
-        setMessageShown(true)
-        fetch(`http://localhost:8080/api/alerts/user/${data.alertId}/mark-seen`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-        })
-      }
+    if (!data.active) return;
 
-      if (data.status === "EMERGENCY_SERVICES_CALLED" && !data.seenByUser) {
-        setCaregiverMessage("Emergency services have been contacted.")
-        fetch(`http://localhost:8080/api/alerts/user/${data.alertId}/mark-seen`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-        })
-      }
-    } catch { }
+    if (data.status === "CAREGIVER_ON_THE_WAY" && !data.seenByUser && !messageShown) {
+      setCaregiverMessage("Your caregiver is on the way.");
+      setMessageShown(true);
+
+      await authRequest(`/api/alerts/user/${data.alertId}/mark-seen`, {
+        method: "POST"
+      });
+    }
+
+    if (data.status === "EMERGENCY_SERVICES_CALLED" && !data.seenByUser) {
+      setCaregiverMessage("Emergency services have been contacted.");
+
+      await authRequest(`/api/alerts/user/${data.alertId}/mark-seen`, {
+        method: "POST"
+      });
+    }
+
+  } catch (err) {
+    console.error("Caregiver response error:", err);
   }
+};
 
   const handleCancel = async () => {
     clearInterval(countdownRef.current)
@@ -203,7 +211,7 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.get("fitbit") === "connected") {
-      window.history.replaceState({}, document.title, "/dashboard")
+      window.history.replaceState({}, document.title, "/")
     }
 
     const token = localStorage.getItem("token")
@@ -223,7 +231,7 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
       if (endY - startY > 120) {
         const token = localStorage.getItem("token")
         if (heartRate === "Pull to connect") {
-          window.location.href = "http://localhost:8080/api/auth/fitbit/connect?token=" + token
+          window.location.href = `${API_BASE}/api/auth/fitbit/connect?token=${token}`
         } else {
           fetchHeartRate(); fetchSteps(); fetchSleep(); fetchActivityMinutes()
         }
