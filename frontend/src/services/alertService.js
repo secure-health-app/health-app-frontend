@@ -1,4 +1,10 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+/* ===================== ALERT SERVICE ===================== */
+
+const API_BASE = import.meta.env.VITE_API_URL;
+
+if (!API_BASE) {
+  throw new Error("VITE_API_URL is not set");
+}
 
 const getAuthHeader = () => ({
   'Authorization': `Bearer ${localStorage.getItem('token')}`,

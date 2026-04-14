@@ -1,7 +1,14 @@
 import { useState, useEffect } from 'react'
 import './CaregiverSettings.css'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+
+/* ===================== CAREGIVER SETTINGS COMPONENT ===================== */
+
+const API_BASE = import.meta.env.VITE_API_URL;
+
+if (!API_BASE) {
+    throw new Error("VITE_API_URL is not set");
+}
 
 const getAuthHeader = () => ({
     'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -122,7 +129,7 @@ function CaregiverSettings({ onBack, onLogout }) {
                     placeholder="Enter their email address"
                     value={caregiverEmail}
                     onChange={(e) => {
-                        setCaregiverEmail(e.target.value.toLowerCase())    
+                        setCaregiverEmail(e.target.value.toLowerCase())
                         setStatus(null)
                     }}
                 />
