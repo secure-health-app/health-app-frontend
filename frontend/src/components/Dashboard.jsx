@@ -42,7 +42,7 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
       const data = await fitbitService.getDashboard();
 
       setSteps(data.steps ?? '--');
-      setSleep(data.sleep ?? '--');
+      setSleep(data.sleepMinutes ? `${Math.floor(data.sleepMinutes / 60)}h ${data.sleepMinutes % 60}m` : '--');
       setRestingHR(data.restingHeartRate ?? '--');
       setActivityMinutes(data.activityMinutes ?? '--');
       setHeartRate(
