@@ -12,6 +12,7 @@
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
+  overflow-y: auto;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -268,7 +269,7 @@
 
 .sos-button {
   display: block;
-  margin: 40px auto 0;
+  margin: 20px auto 0;
   background: #dc3545;
   color: white;
   border: none;

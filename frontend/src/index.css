@@ -53,17 +53,17 @@ a:hover {
 body {
   margin: 0;
   min-width: 320px;
-  min-height: 100vh;
+  min-height: 100dvh;
   background-color: var(--color-bg);
   color: var(--text-dark);
   width: 100%;
   overflow-x: hidden;
-  overflow-y: hidden;
+  overflow-y: auto;
 }
 
 #root {
   width: 100%;
-  min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: hidden;
 }
 

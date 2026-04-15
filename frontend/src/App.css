@@ -3,7 +3,7 @@
   padding: 0;
   width: 100%;
   max-width: 100%;
-  min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: hidden;
   box-sizing: border-box;
 }
@@ -21,7 +21,7 @@ body {
 .auth-container {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-  min-height: 100vh;
+  min-height: 100dvh;
   color: #333;
   display: flex;
   flex-direction: column;
@@ -37,7 +37,7 @@ body {
 .sg-page {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: stretch;
