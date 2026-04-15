@@ -53,8 +53,8 @@
 }
 
 .logo {
-  height: 80px;
-  width: 70px;
+  height: 65px;
+  width: 55px;
   background: transparent;
   border: none;
   box-shadow: none;
@@ -97,7 +97,7 @@
 
 .dashboard-header p {
   margin: 4px 0 0;
-  font-size: clamp(0.8rem, 3vw, 1.1rem);
+  font-size: 0.9rem;
   opacity: 0.9;
   white-space: nowrap;
   overflow: hidden;
@@ -107,7 +107,7 @@
 .dashboard-main {
   flex: 1;
   padding: 8px;
-  padding-bottom: calc(180px + env(safe-area-inset-bottom));
+  padding-bottom: calc(100px + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -128,7 +128,7 @@
 .health-metrics {
   background: rgba(255, 255, 255, 0.95);
   border-radius: 15px;
-  padding: 12px;
+  padding: 10px;
   width: 100%;
   max-width: 400px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
@@ -138,15 +138,15 @@
 
 .health-metrics h2 {
   text-align: center;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   color: #333;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
 }
 
 .metrics-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -157,11 +157,11 @@
 .metric-card {
   background: white;
   border-radius: 15px;
-  padding: 1.2rem;
+  padding: 0.9rem;
   text-align: center;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   border: 1px solid #e0e0e0;
-  min-height: 140px;
+  min-height: 110px;
   min-width: 0;
   word-wrap: break-word;
   max-width: 100%;
@@ -172,7 +172,7 @@
 }
 
 .metric-icon {
-  font-size: 1.8rem;
+  font-size: 1.4rem;
   color: #11998e;
   margin-bottom: 6px;
 }
@@ -186,7 +186,7 @@
 }
 
 .metric-value {
-  font-size: 1.8rem;
+  font-size: 1.4rem;
   font-weight: bold;
   color: #333;
 }
@@ -269,7 +269,7 @@
 
 .sos-button {
   display: block;
-  margin: 20px auto 0;
+  margin: 8px auto 0;
   background: #dc3545;
   color: white;
   border: none;
@@ -449,7 +449,7 @@
   .dashboard-main {
     flex: 1;
     padding: 8px;
-    padding-bottom: calc(180px + env(safe-area-inset-bottom));
+    padding-bottom: calc(100px + env(safe-area-inset-bottom));
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -471,37 +471,62 @@
   }
 
   .dashboard-header {
-    padding: 15px;
+    padding: 12px 14px;
   }
 
   .dashboard-header h1 {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
   }
 
   .dashboard-main {
-    padding: 10px;
-    padding-bottom: calc(180px + env(safe-area-inset-bottom));
+    padding: 8px;
+    padding-bottom: calc(90px + env(safe-area-inset-bottom));
   }
 
   .health-metrics {
-    padding: 10px;
+    padding: 8px;
   }
 
   .health-metrics h2 {
-    font-size: 1.3rem;
+    font-size: 1.15rem;
+    margin-bottom: 8px;
   }
 
   .metrics-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    gap: 6px;
+    width: 100%;
+    max-width: 100%;
   }
 
   .metric-card {
-    padding: 22px;
+    padding: 0.75rem;
+    min-height: 100px;
+    border-radius: 12px;
+  }
+
+  .metric-icon {
+    font-size: 1.2rem;
+    margin-bottom: 4px;
+  }
+
+  .metric-info {
+    gap: 2px;
   }
 
   .metric-value {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
+  }
+
+  .metric-unit {
+    font-size: 0.65rem;
+    margin-bottom: 2px;
+  }
+
+  .metric-label {
+    font-size: 0.65rem;
+    line-height: 1.1;
+    letter-spacing: 0.3px;
   }
 
   .dashboard-footer {
@@ -515,22 +540,14 @@
     height: 45px;
   }
 
-  .assistance-button {
-    width: 50px !important;
-    height: 50px !important;
-  }
-
   .button-icon {
     font-size: 1.3rem;
   }
-}
 
-@media (max-width: 480px) {
-  .dashboard-header h1 {
-    font-size: 1.5rem;
-  }
-
-  .dashboard-header p {
-    font-size: 0.9rem;
+  .sos-button {
+    width: 135px;
+    height: 135px;
+    font-size: 1.6rem;
+    margin: 12px auto 0;
   }
 }
