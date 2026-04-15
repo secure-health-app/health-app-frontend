@@ -37,52 +37,33 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
 
   // Fitbit 
 
-  const fetchHeartRate = async () => {
+  const fetchDashboard = async () => {
     try {
-      const data = await fitbitService.getHeartRate()
-      const resting = data?.["activities-heart"]?.[0]?.value?.restingHeartRate
-      const current = data?.["activities-heart"]?.[0]?.value?.heartRateZones?.[0]?.max
-      setHeartRate(current ?? resting ?? 'N/A')
-      setRestingHR(resting ?? 'N/A')
+      const data = await fitbitService.getDashboard();
+
+      setSteps(data.steps ?? '--');
+      setSleep(data.sleep ?? '--');
+      setRestingHR(data.restingHeartRate ?? '--');
+      setActivityMinutes(data.activityMinutes ?? '--');
+      setHeartRate(
+        typeof data.heartRate === 'number'
+          ? data.heartRate
+          : null
+      );
+
     } catch (error) {
       if (error?.status === 401) {
-        setHeartRate("Pull to connect")
-        return
+        setHeartRate("Pull to connect");
+        return;
       }
-      setHeartRate('N/A')
-      setRestingHR('N/A')
-    }
-  }
 
-  const fetchSteps = async () => {
-    try {
-      const data = await fitbitService.getSteps()
-      setSteps((data?.summary?.steps || data?.activities?.[0]?.steps) ?? 'N/A')
-    } catch {
-      setSteps('N/A')
+      setSteps('--');
+      setSleep('--');
+      setRestingHR('--');
+      setActivityMinutes('--');
+      setHeartRate('--');
     }
-  }
-
-  const fetchSleep = async () => {
-    try {
-      const data = await fitbitService.getSleep()
-      const minutes = data?.sleep?.[0]?.minutesAsleep
-      if (!minutes) { setSleep('N/A'); return }
-      setSleep(`${Math.floor(minutes / 60)}h ${minutes % 60}m`)
-    } catch {
-      setSleep('N/A')
-    }
-  }
-
-  const fetchActivityMinutes = async () => {
-    try {
-      const data = await fitbitService.getSteps()
-      const minutes = data?.summary?.veryActiveMinutes ?? data?.summary?.fairlyActiveMinutes ?? 'N/A'
-      setActivityMinutes(minutes)
-    } catch {
-      setActivityMinutes('N/A')
-    }
-  }
+  };
 
   // Alert logic 
 
@@ -108,33 +89,33 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
     } catch { }
   }
 
-const checkCaregiverResponse = async () => {
-  try {
-    const data = await authRequest('/api/alerts/user/latest');
+  const checkCaregiverResponse = async () => {
+    try {
+      const data = await authRequest('/api/alerts/user/latest');
 
-    if (!data.active) return;
+      if (!data.active) return;
 
-    if (data.status === "CAREGIVER_ON_THE_WAY" && !data.seenByUser && !messageShown) {
-      setCaregiverMessage("Your caregiver is on the way.");
-      setMessageShown(true);
+      if (data.status === "CAREGIVER_ON_THE_WAY" && !data.seenByUser && !messageShown) {
+        setCaregiverMessage("Your caregiver is on the way.");
+        setMessageShown(true);
 
-      await authRequest(`/api/alerts/user/${data.alertId}/mark-seen`, {
-        method: "POST"
-      });
+        await authRequest(`/api/alerts/user/${data.alertId}/mark-seen`, {
+          method: "POST"
+        });
+      }
+
+      if (data.status === "EMERGENCY_SERVICES_CALLED" && !data.seenByUser) {
+        setCaregiverMessage("Emergency services have been contacted.");
+
+        await authRequest(`/api/alerts/user/${data.alertId}/mark-seen`, {
+          method: "POST"
+        });
+      }
+
+    } catch (err) {
+      console.error("Caregiver response error:", err);
     }
-
-    if (data.status === "EMERGENCY_SERVICES_CALLED" && !data.seenByUser) {
-      setCaregiverMessage("Emergency services have been contacted.");
-
-      await authRequest(`/api/alerts/user/${data.alertId}/mark-seen`, {
-        method: "POST"
-      });
-    }
-
-  } catch (err) {
-    console.error("Caregiver response error:", err);
-  }
-};
+  };
 
   const handleCancel = async () => {
     clearInterval(countdownRef.current)
@@ -203,7 +184,7 @@ const checkCaregiverResponse = async () => {
     const token = localStorage.getItem("token")
     if (!token) return
     const fitbitRef = setInterval(() => {
-      fetchActivityMinutes(); fetchHeartRate(); fetchSteps(); fetchSleep()
+      fetchDashboard();
     }, FITBIT_REFRESH_INTERVAL)
     return () => clearInterval(fitbitRef)
   }, [])
@@ -217,7 +198,7 @@ const checkCaregiverResponse = async () => {
     const token = localStorage.getItem("token")
     if (!token) return
 
-    fetchActivityMinutes(); fetchHeartRate(); fetchSteps(); fetchSleep()
+    fetchDashboard();
 
     pollRef.current = setInterval(() => {
       checkForAlerts()
@@ -233,7 +214,7 @@ const checkCaregiverResponse = async () => {
         if (heartRate === "Pull to connect") {
           window.location.href = `${API_BASE}/api/auth/fitbit/connect?token=${token}`
         } else {
-          fetchHeartRate(); fetchSteps(); fetchSleep(); fetchActivityMinutes()
+          fetchDashboard()
         }
       }
     }
