@@ -28,6 +28,7 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
   const [activeAlert, setActiveAlert] = useState(null)
   const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS)
   const [alertLocation, setAlertLocation] = useState(null)
+  const alarmAudioRef = useRef(null);
 
   const confirmedRef = useRef(false)
   const pollRef = useRef(null)
@@ -69,13 +70,24 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
 
   const startAlert = (alertId) => {
     confirmedRef.current = false
+
+    if (!alarmAudioRef.current) {
+      alarmAudioRef.current = new Audio('/alarm.mp3');
+      alarmAudioRef.current.loop = true;
+    }
+    alarmAudioRef.current.play().catch(() => { });
+
     const alert = { alertId }
     activeAlertRef.current = alert
     setActiveAlert(alert)
     setCountdown(COUNTDOWN_SECONDS)
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => setAlertLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
+        (pos) => setAlertLocation({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude
+        }),
         () => setAlertLocation(null)
       )
     }
@@ -120,6 +132,12 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
   const handleCancel = async () => {
     clearInterval(countdownRef.current)
     const alert = activeAlertRef.current
+
+    if (alarmAudioRef.current) {
+      alarmAudioRef.current.pause();
+      alarmAudioRef.current.currentTime = 0;
+    }
+
     activeAlertRef.current = null
     setActiveAlert(null)
     if (alert) {
@@ -132,6 +150,10 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
     confirmedRef.current = true
     clearInterval(countdownRef.current)
     const alert = activeAlertRef.current
+    if (alarmAudioRef.current) {
+      alarmAudioRef.current.pause();
+      alarmAudioRef.current.currentTime = 0;
+    }
     activeAlertRef.current = null
     setActiveAlert(null)
     if (alert) {
@@ -198,7 +220,7 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
     const token = localStorage.getItem("token")
     if (!token) return
 
-    fetchDashboard();
+    fetchDashboard()
 
     pollRef.current = setInterval(() => {
       checkForAlerts()
@@ -227,6 +249,11 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
       clearInterval(countdownRef.current)
       window.removeEventListener("touchstart", onTouchStart)
       window.removeEventListener("touchend", onTouchEnd)
+
+      if (alarmAudioRef.current) {
+        alarmAudioRef.current.pause()
+        alarmAudioRef.current.currentTime = 0
+      }
     }
   }, [])
 
