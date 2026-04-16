@@ -107,10 +107,11 @@
 .dashboard-main {
   flex: 1;
   padding: 8px;
-  padding-bottom: calc(100px + env(safe-area-inset-bottom));
+  padding-bottom: calc(90px + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: space-between;
   overflow-x: hidden;
   width: 100%;
   box-sizing: border-box;
@@ -449,7 +450,7 @@
   .dashboard-main {
     flex: 1;
     padding: 8px;
-    padding-bottom: calc(100px + env(safe-area-inset-bottom));
+    padding-bottom: calc(90px + env(safe-area-inset-bottom));
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -480,7 +481,7 @@
 
   .dashboard-main {
     padding: 8px;
-    padding-bottom: calc(90px + env(safe-area-inset-bottom));
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
   }
 
   .health-metrics {
