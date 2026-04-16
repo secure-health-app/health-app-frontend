@@ -69,7 +69,7 @@ function CaregiverDashboard({ onLogout }) {
       <div className="cg-emergency">
         <div className="cg-emergency-ring" />
         <h2 className="cg-emergency-title">Alert</h2>
-        <p className="cg-emergency-name">{activeAlert.name} needs help</p>
+        <h3 className="cg-emergency-name">{activeAlert.name} needs help</h3>
         {activeAlert.latitude && (
           <a
             className="cg-emergency-map"
@@ -95,7 +95,7 @@ function CaregiverDashboard({ onLogout }) {
             I'm On My Way
           </button>
           <button className="cg-btn-emergency" onClick={() => handleRespond('emergency')}>
-            Calling Emergency Services
+            Call Emergency Services
           </button>
         </div>
       </div>

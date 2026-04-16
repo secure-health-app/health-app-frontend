@@ -153,11 +153,12 @@
   gap: 12px;
   width: 100%;
   max-width: 320px;
-  margin-top: 8px;
+  margin-top: 24px;
 }
 
 .alert-call-btn,
-.cg-btn-onway {
+.cg-btn-onway,
+.cg-btn-emergency {
   background: #fff;
   color: #c0392b;
   border: none;
@@ -165,18 +166,6 @@
   padding: 14px;
   font-size: 16px;
   font-weight: 700;
-  cursor: pointer;
-  width: 100%;
-}
-
-.cg-btn-emergency {
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
-  border: 2px solid rgba(255, 255, 255, 0.6);
-  border-radius: 12px;
-  padding: 14px;
-  font-size: 16px;
-  font-weight: 600;
   cursor: pointer;
   width: 100%;
 }
