@@ -10,6 +10,12 @@ It connects securely to the Spring Boot backend API using JWT-authenticated REST
 
 ---
 
+## Application Preview
+
+<img width="1679" height="1151" alt="dashboard-preview" src="https://github.com/user-attachments/assets/1cacb014-76dc-40d7-8f95-7015d3d7d388" />
+
+---
+
 ## Features
 
 - Real-time fall alert notifications  
@@ -17,7 +23,7 @@ It connects securely to the Spring Boot backend API using JWT-authenticated REST
 - Heart rate, sleep, and activity metrics  
 - User and caregiver dashboard roles  
 - Alert acknowledgement workflow  
-- 30-second false alarm cancel countdown  
+- 30-second false alarm cancel countdown 
 - Secure JWT login session  
 - Pull-to-refresh health metrics  
 - Mobile responsive interface  
@@ -39,12 +45,14 @@ It connects securely to the Spring Boot backend API using JWT-authenticated REST
 ## Local Development Setup
 
 ### 1. Clone the repository
+
 ```bash
 git clone https://github.com/secure-health-app/health-app-frontend.git
 cd health-app-frontend/frontend
 ```
 
 ### 2. Install Dependencies
+
 ```bash
 npm ci
 ```
@@ -53,7 +61,11 @@ npm ci
 
 Create a `.env` file:
 
-`VITE_API_URL=http://localhost:8080`
+```env
+VITE_API_URL=https://health-app-backend-icgv.onrender.com
+```
+
+The final prototype was connected to the deployed Render backend API.
 
 ### 4. Start Development Server
 
@@ -86,6 +98,7 @@ npm run dev
 ---
 
 ## Project Structure
+
 ```
 frontend/
 ├── src/
