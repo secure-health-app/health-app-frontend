@@ -2,72 +2,88 @@
 
 ## Overview
 
-This frontend provides the user interface for the SmartGuardian system.  
-It connects to the Spring Boot backend API to display fall alerts, Fitbit health metrics, and emergency notifications.  
-The application is built as a Progressive Web App (PWA) to support mobile devices and offline capability.
+This repository contains the React frontend for **SmartGuardian**, a final-year software development project focused on fall detection, wearable health monitoring, and emergency alerting.
+
+The frontend provides dashboards for users and caregivers, displaying real-time alerts, Fitbit health metrics, and system status through a mobile-friendly Progressive Web App (PWA).
+
+It connects securely to the Spring Boot backend API using JWT-authenticated REST requests.
 
 ---
 
 ## Features
 
-- Real-time fall alerts
-- Fitbit health data dashboard
-- Heart rate and activity monitoring
-- Emergency alert notifications
-- Caregiver acknowledgement system
-- Secure JWT authentication
-- Mobile responsive PWA interface
+- Real-time fall alert notifications  
+- Fitbit health dashboard  
+- Heart rate, sleep, and activity metrics  
+- User and caregiver dashboard roles  
+- Alert acknowledgement workflow  
+- 30-second false alarm cancel countdown  
+- Secure JWT login session  
+- Pull-to-refresh health metrics  
+- Mobile responsive interface  
+- Progressive Web App (PWA) support
 
-## Installation & Setup
+---
+
+## Tech Stack
+
+- React
+- Vite
+- JavaScript (JSX)
+- CSS
+- REST API Integration  
+- Progressive Web App (PWA)
+
+---
+
+## Local Development Setup
 
 ### 1. Clone the repository
 ```bash
 git clone https://github.com/secure-health-app/health-app-frontend.git
 cd health-app-frontend/frontend
-npm install
 ```
 
-### Development Mode
+### 2. Install Dependencies
+```bash
+npm ci
+```
+
+### 3. Configure Environment Variables
+
+Create a `.env` file:
+
+`VITE_API_URL=http://localhost:8080`
+
+### 4. Start Development Server
 
 ```bash
 npm run dev
 ```
-Runs on:
+Runs locally on:
 
-http://localhost:5173
+`http://localhost:5173`
 
 
-### Production
+## Production Build
 
 ```bash
 npm run build
 ```
 
+The final prototype frontend was connected to and tested against the deployed Render backend API.
+
 ## Running with Backend
 
-Make sure the backend is running on:
-
-http://localhost:8080
+Ensure the backend API is running locally or use the deployed backend URL.
 
 Then start the frontend:
+
 ```bash
 npm run dev
 ```
 
-### Tech Stack
-- React
-- Vite
-- JavaScript (JSX)
-- CSS
-- REST API integration
-
-## Environment Variables
-
-Create a `.env` file:
-
-```bash
-VITE_API_URL=http://localhost:8080
-```
+---
 
 ## Project Structure
 ```
@@ -79,6 +95,8 @@ frontend/
 ├── App.jsx
 └── main.jsx
 ```
+
+---
 
 ## Author
 Louise Deeth
