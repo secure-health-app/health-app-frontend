@@ -45,7 +45,7 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
       setSteps(data.steps ?? '--');
       setSleep(data.sleepMinutes ? `${Math.floor(data.sleepMinutes / 60)}h ${data.sleepMinutes % 60}m` : '--');
       setRestingHR(data.restingHeartRate ?? '--');
-      setActivityMinutes(data.activityMinutes ?? '--');
+      setActivityMinutes(data.activeMinutes ?? '--');
       setHeartRate(
         typeof data.heartRate === 'number'
           ? data.heartRate
