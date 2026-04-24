@@ -169,3 +169,31 @@
   cursor: pointer;
   width: 100%;
 }
+
+.anomaly-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 10px 16px;
+  color: #856404;
+}
+
+.anomaly-banner-icon {
+  font-size: 1.2rem;
+  margin-top: 2px;
+}
+
+.anomaly-banner-text strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.95rem;
+}
+
+.anomaly-banner-text p {
+  margin: 2px 0;
+  font-size: 0.85rem;
+}

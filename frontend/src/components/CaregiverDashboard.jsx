@@ -4,6 +4,7 @@
 import { useState, useEffect, useRef } from 'react'
 import alertService from '../services/alertService'
 import './CaregiverDashboard.css'
+import { authRequest } from '../lib/api'
 
 const POLL_INTERVAL = 5000
 
@@ -13,6 +14,7 @@ function CaregiverDashboard({ onLogout }) {
   const [responded, setResponded] = useState(false)
   const [lastChecked, setLastChecked] = useState(null)
   const pollRef = useRef(null)
+  const [anomalyFlags, setAnomalyFlags] = useState([])
 
   const checkForAlerts = async () => {
     try {
@@ -33,7 +35,11 @@ function CaregiverDashboard({ onLogout }) {
 
   useEffect(() => {
     checkForAlerts()
-    pollRef.current = setInterval(checkForAlerts, POLL_INTERVAL)
+    fetchAnomalyStatus()
+    pollRef.current = setInterval(() => {
+      checkForAlerts()
+      fetchAnomalyStatus()
+    }, POLL_INTERVAL)
     return () => clearInterval(pollRef.current)
   }, [])
 
@@ -58,6 +64,19 @@ function CaregiverDashboard({ onLogout }) {
 
     setResponded(true)
     setActiveAlert(null)
+  }
+
+  const fetchAnomalyStatus = async () => {
+    try {
+      const data = await authRequest('/api/anomaly/status')
+      if (data.anomalyDetected) {
+        setAnomalyFlags(data.flags)
+      } else {
+        setAnomalyFlags([])
+      }
+    } catch {
+      setAnomalyFlags([])
+    }
   }
 
 
@@ -119,6 +138,17 @@ function CaregiverDashboard({ onLogout }) {
         </div>
       </header>
 
+    {anomalyFlags.length > 0 && (
+      <div className="anomaly-banner">
+        <span className="anomaly-banner-icon">⚠️</span>
+        <div className="anomaly-banner-text">
+          <strong>Health Anomaly Detected</strong>
+          {anomalyFlags.map((flag, i) => (
+            <p key={i}>{flag}</p>
+          ))}
+        </div>
+      </div>
+    )}
 
       {/* MAIN */}
       <main className="cg-main">

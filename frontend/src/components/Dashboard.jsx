@@ -35,6 +35,7 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
   const countdownRef = useRef(null)
   // ref mirror of activeAlert - fixes stale closure in poll interval
   const activeAlertRef = useRef(null)
+  const [anomalyFlags, setAnomalyFlags] = useState([])
 
   // Fitbit 
 
@@ -65,6 +66,19 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
       setHeartRate('--');
     }
   };
+
+  const fetchAnomalyStatus = async () => {
+    try {
+      const data = await authRequest('/api/anomaly/status')
+      if (data.anomalyDetected) {
+        setAnomalyFlags(data.flags)
+      } else {
+        setAnomalyFlags([])
+      }
+    } catch {
+      setAnomalyFlags([])
+    }
+  }
 
   // Alert logic 
 
@@ -206,7 +220,8 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
     const token = localStorage.getItem("token")
     if (!token) return
     const fitbitRef = setInterval(() => {
-      fetchDashboard();
+      fetchDashboard()
+      fetchAnomalyStatus()    
     }, FITBIT_REFRESH_INTERVAL)
     return () => clearInterval(fitbitRef)
   }, [])
@@ -221,6 +236,7 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
     if (!token) return
 
     fetchDashboard()
+    fetchAnomalyStatus() 
 
     pollRef.current = setInterval(() => {
       checkForAlerts()
@@ -270,6 +286,18 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
           <button className="caregiver-dismiss-btn" onClick={() => setCaregiverMessage(null)}>
             OK
           </button>
+        </div>
+      )}
+
+      {anomalyFlags.length > 0 && (
+        <div className="anomaly-banner">
+          <span className="anomaly-banner-icon">⚠️</span>
+          <div className="anomaly-banner-text">
+            <strong>Health Anomaly Detected</strong>
+            {anomalyFlags.map((flag, i) => (
+              <p key={i}>{flag}</p>
+            ))}
+          </div>
         </div>
       )}
 
