@@ -241,6 +241,7 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
     pollRef.current = setInterval(() => {
       checkForAlerts()
       checkCaregiverResponse()
+      fetchAnomalyStatus()
     }, ALERT_POLL_INTERVAL)
 
     let startY = 0
