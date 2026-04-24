@@ -12,7 +12,7 @@ It connects securely to the Spring Boot backend API using JWT-authenticated REST
 
 ## Application Preview
 
-<img width="1679" height="1151" alt="dashboard-preview" src="https://github.com/user-attachments/assets/1cacb014-76dc-40d7-8f95-7015d3d7d388" />
+<img width="1000" alt="dashboard-preview" src="https://github.com/user-attachments/assets/bfd581c6-4119-4a55-b174-e4c4f8ec1bf1" />
 
 ---
 
