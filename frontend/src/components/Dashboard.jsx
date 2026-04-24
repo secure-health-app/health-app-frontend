@@ -1,5 +1,5 @@
 import './Dashboard.css'
-import { FaHeartbeat, FaCalendarAlt, FaPills, FaWalking, FaMoon, FaUser } from 'react-icons/fa'
+import { FaHeartbeat, FaCalendarAlt, FaPills, FaWalking, FaMoon, FaCog  } from 'react-icons/fa'
 import { useState, useEffect, useRef } from 'react'
 import fitbitService from '../services/fitbitService'
 import alertService from '../services/alertService'
@@ -283,8 +283,8 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
             </div>
           </div>
           <div className="header-right">
-            <button className="profile-button" title="Profile" onClick={onNavigateToSettings}>
-              <FaUser className="button-icon" />
+            <button className="settings-button" title="Settings" onClick={onNavigateToSettings}>
+              <FaCog className="button-icon" />
             </button>
           </div>
         </div>
