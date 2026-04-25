@@ -37,6 +37,7 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
   const activeAlertRef = useRef(null)
   const [anomalyFlags, setAnomalyFlags] = useState([])
   const anomalyAlertSentRef = useRef(false)
+  const anomalyDismissedRef = useRef(false)
 
   // Fitbit 
 
@@ -72,7 +73,9 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
     try {
       const data = await authRequest('/api/anomaly/status')
       if (data.anomalyDetected) {
-        setAnomalyFlags(data.flags)
+        if (!anomalyDismissedRef.current) {
+          setAnomalyFlags(data.flags)
+        }
         if (!anomalyAlertSentRef.current) {
           anomalyAlertSentRef.current = true
           try {
@@ -82,18 +85,19 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
               body: JSON.stringify({ flags: data.flags })
             })
           } catch {
-            // POST failed - reset ref so it retries next poll
             anomalyAlertSentRef.current = false
           }
         }
       } else {
         anomalyAlertSentRef.current = false
+        anomalyDismissedRef.current = false
         setAnomalyFlags([])
       }
     } catch {
       setAnomalyFlags([])
     }
   }
+  
   // Alert logic 
 
   const startAlert = (alertId) => {

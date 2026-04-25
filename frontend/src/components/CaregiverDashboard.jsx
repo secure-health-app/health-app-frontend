@@ -14,6 +14,8 @@ function CaregiverDashboard({ onLogout }) {
   const [lastChecked, setLastChecked] = useState(null)
   const pollRef = useRef(null)
   const [anomalyFlags, setAnomalyFlags] = useState([])
+  const [anomalyAlertId, setAnomalyAlertId] = useState(null)
+  const dismissedAnomalyRef = useRef(null)
 
   const checkForAlerts = async () => {
     try {
@@ -22,16 +24,19 @@ function CaregiverDashboard({ onLogout }) {
 
       if (data?.active) {
         if (data.detectionPhase === 'HEALTH_ANOMALY') {
-          // show banner not emergency screen
-          setAnomalyFlags(['Health anomaly detected for your patient'])
-        } else {
-          setActiveAlert({
-            id: data.alertId,
-            name: data.name,
-            latitude: data.latitude,
-            longitude: data.longitude,
-            phoneNumber: data.phoneNumber
-          })
+            if (dismissedAnomalyRef.current !== data.alertId) {
+              // show banner not emergency screen
+              setAnomalyFlags(['Health anomaly detected for your patient'])
+              setAnomalyAlertId(data.alertId)
+            }
+          } else {
+            setActiveAlert({
+              id: data.alertId,
+              name: data.name,
+              latitude: data.latitude,
+              longitude: data.longitude,
+              phoneNumber: data.phoneNumber
+            })
         }
       }
     } catch { }
@@ -127,17 +132,26 @@ function CaregiverDashboard({ onLogout }) {
         </div>
       </header>
 
-    {anomalyFlags.length > 0 && (
-      <div className="anomaly-banner">
-        <span className="anomaly-banner-icon">⚠️</span>
-        <div className="anomaly-banner-text">
-          <strong>Health Anomaly Detected</strong>
-          {anomalyFlags.map((flag, i) => (
-            <p key={i}>{flag}</p>
-          ))}
+      {anomalyFlags.length > 0 && (
+        <div className="anomaly-banner">
+          <span className="anomaly-banner-icon">⚠️</span>
+          <div className="anomaly-banner-text">
+            <strong>Health Anomaly Detected</strong>
+            {anomalyFlags.map((flag, i) => (
+              <p key={i}>{flag}</p>
+            ))}
+          </div>
+          <button 
+            className="anomaly-dismiss-btn" 
+            onClick={() => {
+              dismissedAnomalyRef.current = anomalyAlertId
+              setAnomalyFlags([])
+            }}
+          >
+            OK
+          </button>
         </div>
-      </div>
-    )}
+      )}
 
       {/* MAIN */}
       <main className="cg-main">

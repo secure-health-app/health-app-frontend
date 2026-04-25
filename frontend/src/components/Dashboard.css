@@ -592,4 +592,5 @@
   font-size: 13px;
   cursor: pointer;
   white-space: nowrap;
+  flex-shrink: 0;
 }
