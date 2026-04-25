@@ -36,6 +36,7 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
   // ref mirror of activeAlert - fixes stale closure in poll interval
   const activeAlertRef = useRef(null)
   const [anomalyFlags, setAnomalyFlags] = useState([])
+  const anomalyAlertSentRef = useRef(false)
 
   // Fitbit 
 
@@ -70,15 +71,18 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
   const fetchAnomalyStatus = async () => {
     try {
       const data = await authRequest('/api/anomaly/status')
-      if (data.anomalyDetected && anomalyFlags.length === 0) {
+      if (data.anomalyDetected) {
         setAnomalyFlags(data.flags)
-        // notify caregiver
-        await authRequest('/api/alerts/anomaly', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ flags: data.flags })
-        })
-      } else if (!data.anomalyDetected) {
+        if (!anomalyAlertSentRef.current) {
+          anomalyAlertSentRef.current = true
+          await authRequest('/api/alerts/anomaly', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ flags: data.flags })
+          })
+        }
+      } else {
+        anomalyAlertSentRef.current = false
         setAnomalyFlags([])
       }
     } catch {
