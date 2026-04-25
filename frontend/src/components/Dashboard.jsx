@@ -324,7 +324,6 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
           <button 
             className="anomaly-dismiss-btn" 
             onClick={() => {
-              anomalyDismissedRef.current = true
               localStorage.setItem('anomalyDismissedAt', Date.now().toString())
               setAnomalyFlags([])
             }}
