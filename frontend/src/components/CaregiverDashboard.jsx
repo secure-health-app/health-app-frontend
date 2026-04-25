@@ -4,7 +4,6 @@
 import { useState, useEffect, useRef } from 'react'
 import alertService from '../services/alertService'
 import './CaregiverDashboard.css'
-import { authRequest } from '../lib/api'
 
 const POLL_INTERVAL = 5000
 
@@ -22,23 +21,26 @@ function CaregiverDashboard({ onLogout }) {
       setLastChecked(new Date().toLocaleTimeString())
 
       if (data?.active) {
-        setActiveAlert({
-          id: data.alertId,
-          name: data.name,
-          latitude: data.latitude,
-          longitude: data.longitude,
-          phoneNumber: data.phoneNumber
-        })
+        if (data.detectionPhase === 'HEALTH_ANOMALY') {
+          // show banner not emergency screen
+          setAnomalyFlags(['Health anomaly detected for your patient'])
+        } else {
+          setActiveAlert({
+            id: data.alertId,
+            name: data.name,
+            latitude: data.latitude,
+            longitude: data.longitude,
+            phoneNumber: data.phoneNumber
+          })
+        }
       }
     } catch { }
   }
 
   useEffect(() => {
     checkForAlerts()
-    fetchAnomalyStatus()
     pollRef.current = setInterval(() => {
       checkForAlerts()
-      fetchAnomalyStatus()
     }, POLL_INTERVAL)
     return () => clearInterval(pollRef.current)
   }, [])
@@ -64,19 +66,6 @@ function CaregiverDashboard({ onLogout }) {
 
     setResponded(true)
     setActiveAlert(null)
-  }
-
-  const fetchAnomalyStatus = async () => {
-    try {
-      const data = await authRequest('/api/anomaly/status')
-      if (data.anomalyDetected) {
-        setAnomalyFlags(data.flags)
-      } else {
-        setAnomalyFlags([])
-      }
-    } catch {
-      setAnomalyFlags([])
-    }
   }
 
 

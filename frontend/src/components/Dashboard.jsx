@@ -70,9 +70,15 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
   const fetchAnomalyStatus = async () => {
     try {
       const data = await authRequest('/api/anomaly/status')
-      if (data.anomalyDetected) {
+      if (data.anomalyDetected && anomalyFlags.length === 0) {
         setAnomalyFlags(data.flags)
-      } else {
+        // notify caregiver
+        await authRequest('/api/alerts/anomaly', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ flags: data.flags })
+        })
+      } else if (!data.anomalyDetected) {
         setAnomalyFlags([])
       }
     } catch {
@@ -299,6 +305,12 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
               <p key={i}>{flag}</p>
             ))}
           </div>
+          <button 
+            className="anomaly-dismiss-btn" 
+            onClick={() => setAnomalyFlags([])}
+          >
+            OK
+          </button>
         </div>
       )}
 
