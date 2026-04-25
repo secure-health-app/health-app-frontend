@@ -75,11 +75,16 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
         setAnomalyFlags(data.flags)
         if (!anomalyAlertSentRef.current) {
           anomalyAlertSentRef.current = true
-          await authRequest('/api/alerts/anomaly', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ flags: data.flags })
-          })
+          try {
+            await authRequest('/api/alerts/anomaly', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ flags: data.flags })
+            })
+          } catch {
+            // POST failed - reset ref so it retries next poll
+            anomalyAlertSentRef.current = false
+          }
         }
       } else {
         anomalyAlertSentRef.current = false
@@ -89,7 +94,6 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
       setAnomalyFlags([])
     }
   }
-
   // Alert logic 
 
   const startAlert = (alertId) => {
