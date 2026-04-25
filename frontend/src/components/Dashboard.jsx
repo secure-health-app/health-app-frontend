@@ -37,7 +37,6 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
   const activeAlertRef = useRef(null)
   const [anomalyFlags, setAnomalyFlags] = useState([])
   const anomalyAlertSentRef = useRef(false)
-  const anomalyDismissedRef = useRef(false)
 
   // Fitbit 
 
@@ -73,7 +72,12 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
     try {
       const data = await authRequest('/api/anomaly/status')
       if (data.anomalyDetected) {
-        if (!anomalyDismissedRef.current) {
+        const dismissedAt = localStorage.getItem('anomalyDismissedAt')
+        const twentyFourHours = 24 * 60 * 60 * 1000
+        const recentlyDismissed = dismissedAt && 
+          (Date.now() - parseInt(dismissedAt)) < twentyFourHours
+
+        if (!recentlyDismissed) {
           setAnomalyFlags(data.flags)
         }
         if (!anomalyAlertSentRef.current) {
@@ -90,14 +94,14 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
         }
       } else {
         anomalyAlertSentRef.current = false
-        anomalyDismissedRef.current = false
+        localStorage.removeItem('anomalyDismissedAt')
         setAnomalyFlags([])
       }
     } catch {
       setAnomalyFlags([])
     }
   }
-  
+
   // Alert logic 
 
   const startAlert = (alertId) => {
@@ -319,7 +323,11 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
           </div>
           <button 
             className="anomaly-dismiss-btn" 
-            onClick={() => setAnomalyFlags([])}
+            onClick={() => {
+              anomalyDismissedRef.current = true
+              localStorage.setItem('anomalyDismissedAt', Date.now().toString())
+              setAnomalyFlags([])
+            }}
           >
             OK
           </button>
