@@ -1,10 +1,11 @@
-// caregiver's view - polls every 5s for alerts assigned to them
-// shows a status card in the white body, flips to full red view when alert arrives
+// Caregiver dashboard:
+// normal monitoring view switches to emergency mode when an alert is received
 
 import { useState, useEffect, useRef } from 'react'
 import alertService from '../services/alertService'
 import './CaregiverDashboard.css'
 
+// Poll backend every 5 seconds for newly confirmed caregiver alerts
 const POLL_INTERVAL = 5000
 
 function CaregiverDashboard({ onLogout }) {
@@ -23,13 +24,18 @@ function CaregiverDashboard({ onLogout }) {
       setLastChecked(new Date().toLocaleTimeString())
 
       if (data?.active) {
+        // Health anomalies use banner notification instead of emergency full-screen alert
         if (data.detectionPhase === 'HEALTH_ANOMALY') {
-            if (dismissedAnomalyRef.current !== data.alertId) {
-              // show banner not emergency screen
-              setAnomalyFlags(['Health anomaly detected for your patient'])
-              setAnomalyAlertId(data.alertId)
-            }
-          } else {
+          const dismissedAt = localStorage.getItem('cgAnomalyDismissedAt')
+          const twentyFourHours = 24 * 60 * 60 * 1000
+          const recentlyDismissed = dismissedAt &&
+            (Date.now() - parseInt(dismissedAt)) < twentyFourHours
+
+          if (!recentlyDismissed && dismissedAnomalyRef.current !== data.alertId) {
+            setAnomalyFlags(['Health anomaly detected for your patient'])
+            setAnomalyAlertId(data.alertId)
+          }
+        } else {
             setActiveAlert({
               id: data.alertId,
               name: data.name,
@@ -52,6 +58,7 @@ function CaregiverDashboard({ onLogout }) {
 
   useEffect(() => {
     if (activeAlert) {
+      // Trigger vibration + looping alarm for urgent attention on supported devices
       navigator.vibrate?.([400, 200, 400, 200, 400])
 
       const alarm = new Audio("/alarm.mp3")
@@ -145,6 +152,7 @@ function CaregiverDashboard({ onLogout }) {
             className="anomaly-dismiss-btn" 
             onClick={() => {
               dismissedAnomalyRef.current = anomalyAlertId
+              localStorage.setItem('cgAnomalyDismissedAt', Date.now().toString())
               setAnomalyFlags([])
             }}
           >
