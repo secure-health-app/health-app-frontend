@@ -6,6 +6,7 @@ if (!API_BASE) {
   throw new Error("VITE_API_URL is not set");
 }
 
+// Reusable JWT headers for protected alert endpoints
 const getAuthHeader = () => ({
   'Authorization': `Bearer ${localStorage.getItem('token')}`,
   'Content-Type': 'application/json'
@@ -69,6 +70,8 @@ const alertService = {
     return res.json()
   },
 
+  // Caregiver response includes chosen action:
+  // onway | emergency
   respondAlert: async (id, action) => {
     const token = localStorage.getItem("token")
 

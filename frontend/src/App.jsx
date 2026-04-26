@@ -11,11 +11,14 @@ import RoleSelect from './components/RoleSelect'
 
 /* ===================== APP COMPONENT ===================== */
 
+
+// Root app controller for login state, role routing, and page navigation
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [role, setRole] = useState(null)  // null | 'user' | 'caregiver'
   const [currentPage, setCurrentPage] = useState('dashboard')
 
+  // Restore login session and selected role after page refresh
   useEffect(() => {
     const token = localStorage.getItem('token')
     const savedRole = localStorage.getItem('role')
@@ -31,6 +34,7 @@ function App() {
     setIsLoggedIn(true)
   }
 
+  // Clear saved session data and reset app state
   const handleLogout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('role')
@@ -40,6 +44,7 @@ function App() {
   }
 
   const handleRoleSelect = (selectedRole) => {
+    // Persist role choice so user does not reselect after refresh
     localStorage.setItem('role', selectedRole)
     setRole(selectedRole)
   }

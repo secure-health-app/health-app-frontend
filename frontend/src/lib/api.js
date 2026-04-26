@@ -25,11 +25,12 @@ async function request(path, opts = {}) {
   // build full API URL
   const res = await fetch(`${API_BASE}${path}`, init);
 
+  // Allow UI to handle expired login / unauthorised state cleanly
   if (res.status === 401) {
     throw { status: 401 };
   }
 
-  // read as text first (handles non-JSON safely)
+  // Read raw text first so empty or non-JSON responses do not crash parsing
   const text = await res.text();
 
   let body = null;

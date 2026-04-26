@@ -40,6 +40,7 @@ function CaregiverSettings({ onBack, onLogout }) {
                 // not a dealbreaker if this fails
             }
         }
+        // Load any existing caregiver link when settings page opens
         fetchLinked()
     }, [])
 
@@ -129,6 +130,7 @@ function CaregiverSettings({ onBack, onLogout }) {
                     placeholder="Enter their email address"
                     value={caregiverEmail}
                     onChange={(e) => {
+                        // Normalise email input to reduce case mismatch issues
                         setCaregiverEmail(e.target.value.toLowerCase())
                         setStatus(null)
                     }}

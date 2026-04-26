@@ -11,6 +11,7 @@ if (!API_BASE) {
   throw new Error("VITE_API_URL is not set");
 }
 
+// Fast polling for emergency alerts, slower refresh for Fitbit metrics
 const ALERT_POLL_INTERVAL = 5000
 const COUNTDOWN_SECONDS = 30
 const FITBIT_REFRESH_INTERVAL = 1 * 60 * 1000
@@ -30,6 +31,7 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
   const [alertLocation, setAlertLocation] = useState(null)
   const alarmAudioRef = useRef(null);
 
+  // prevent duplicate confirm requests if countdown and button trigger together
   const confirmedRef = useRef(false)
   const pollRef = useRef(null)
   const countdownRef = useRef(null)
@@ -38,7 +40,7 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
   const [anomalyFlags, setAnomalyFlags] = useState([])
   const anomalyAlertSentRef = useRef(false)
 
-  // Fitbit 
+/* ===================== FITBIT DASHBOARD DATA ===================== */
 
   const fetchDashboard = async () => {
     try {
@@ -55,6 +57,7 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
       );
 
     } catch (error) {
+      // Fitbit not connected or token expired - prompt reconnection gesture
       if (error?.status === 401) {
         setHeartRate("Pull to connect");
         return;
@@ -80,6 +83,7 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
         if (!recentlyDismissed) {
           setAnomalyFlags(data.flags)
         }
+        // Avoid repeatedly sending the same anomaly alert during polling cycle
         if (!anomalyAlertSentRef.current) {
           anomalyAlertSentRef.current = true
           try {
@@ -102,7 +106,7 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
     }
   }
 
-  // Alert logic 
+/* ===================== FALL ALERT WORKFLOW ===================== */
 
   const startAlert = (alertId) => {
     confirmedRef.current = false
@@ -118,6 +122,7 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
     setActiveAlert(alert)
     setCountdown(COUNTDOWN_SECONDS)
 
+    // Include GPS location in emergency alerts when permission is available
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => setAlertLocation({
@@ -227,6 +232,7 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
     if (!activeAlert) return
     countdownRef.current = setInterval(() => {
       setCountdown(prev => {
+        // If user does not respond, automatically escalate after 30 seconds
         if (prev <= 1) {
           clearInterval(countdownRef.current)
           handleConfirm()
@@ -270,6 +276,7 @@ function Dashboard({ onLogout, onNavigateToAppointments, onNavigateToMedications
     const onTouchStart = (e) => { startY = e.touches[0].clientY }
     const onTouchEnd = (e) => {
       const endY = e.changedTouches[0].clientY
+      // Mobile pull-down gesture refreshes Fitbit data or starts Fitbit reconnect flow
       if (endY - startY > 120) {
         const token = localStorage.getItem("token")
         if (heartRate === "Pull to connect") {
