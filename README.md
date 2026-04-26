@@ -16,6 +16,15 @@ It connects securely to the Spring Boot backend API using JWT-authenticated REST
 
 ---
 
+## Live Demo
+
+- [Watch SmartGuardian Screencast Demo (YouTube)](https://www.youtube.com/watch?v=i_r_CQjFKRY)
+- [Frontend Application](https://health-app-frontend-1vl1.onrender.com/)
+
+> Initial load may take a few seconds while the Render service wakes.
+
+---
+
 ## Features
 
 - Real-time fall alert notifications  
@@ -50,6 +59,8 @@ It connects securely to the Spring Boot backend API using JWT-authenticated REST
 git clone https://github.com/secure-health-app/health-app-frontend.git
 cd health-app-frontend/frontend
 ```
+
+> Note: The React application source code is contained in the `/frontend` directory.
 
 ### 2. Install Dependencies
 
@@ -112,8 +123,7 @@ frontend/
 ---
 
 ## Author
-Louise Deeth
 
-BSc (Hons) Software Development
-
+Louise Deeth  
+BSc (Hons) Software Development  
 Atlantic Technological University
